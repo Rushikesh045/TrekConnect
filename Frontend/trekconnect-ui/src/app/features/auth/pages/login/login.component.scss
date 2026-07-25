@@ -1,0 +1,62 @@
+.login-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  font-size: 0.88rem;
+
+  .remember-me {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+
+    input[type="checkbox"] {
+      accent-color: var(--primary-500);
+      width: 16px;
+      height: 16px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  }
+
+  .forgot-link {
+    color: var(--primary-400);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: var(--primary-500);
+      text-decoration: underline;
+    }
+  }
+}
+
+.auth-footer-links {
+  margin-top: 1.75rem;
+  text-align: center;
+
+  p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    .signup-link {
+      color: var(--primary-400);
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 0.25rem;
+
+      &:hover {
+        color: var(--primary-500);
+        text-decoration: underline;
+      }
+    }
+  }
+}

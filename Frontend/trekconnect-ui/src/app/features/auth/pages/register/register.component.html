@@ -1,0 +1,60 @@
+<app-auth-card-layout
+  title="Create Your Account"
+  subtitle="Join TrekConnect to explore curated expeditions or organize treks"
+>
+  <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="register-form">
+    <!-- Role Selector -->
+    <app-role-selector
+      [selectedRole]="selectedRole"
+      (roleChange)="onRoleChange($event)"
+    ></app-role-selector>
+
+    <!-- Name Input -->
+    <app-form-input
+      label="Full Name"
+      type="text"
+      placeholder="e.g. Rushikesh Sharma"
+      iconClass="ri-user-line"
+      [isRequired]="true"
+      formControlName="name"
+      [errorMessage]="nameError"
+    ></app-form-input>
+
+    <!-- Email Input -->
+    <app-form-input
+      label="Email Address"
+      type="email"
+      placeholder="e.g. rushikesh@trekconnect.com"
+      iconClass="ri-mail-line"
+      [isRequired]="true"
+      formControlName="email"
+      [errorMessage]="emailError"
+    ></app-form-input>
+
+    <!-- Password Input -->
+    <app-form-input
+      label="Password"
+      type="password"
+      placeholder="Create a strong password"
+      iconClass="ri-lock-2-line"
+      [isRequired]="true"
+      formControlName="password"
+      [errorMessage]="passwordError"
+    ></app-form-input>
+
+    <!-- Submit Button -->
+    <app-action-button
+      type="submit"
+      variant="primary"
+      [isLoading]="isLoading"
+      [isDisabled]="registerForm.invalid"
+      iconClass="ri-user-add-line"
+    >
+      Create Account
+    </app-action-button>
+
+    <div class="auth-footer-links">
+      <p>Already have an account? <a routerLink="/auth/login" class="login-link">Sign In</a></p>
+    </div>
+  </form>
+</app-auth-card-layout>

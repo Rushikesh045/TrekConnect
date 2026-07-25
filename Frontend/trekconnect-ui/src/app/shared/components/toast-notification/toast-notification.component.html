@@ -1,0 +1,24 @@
+<div class="toast-container">
+  <div
+    *ngFor="let toast of toasts"
+    class="toast-card"
+    [class.toast-success]="toast.type === 'success'"
+    [class.toast-error]="toast.type === 'error'"
+    [class.toast-info]="toast.type === 'info'"
+    [class.toast-warning]="toast.type === 'warning'"
+  >
+    <div class="toast-icon">
+      <i *ngIf="toast.type === 'success'" class="ri-checkbox-circle-fill"></i>
+      <i *ngIf="toast.type === 'error'" class="ri-error-warning-fill"></i>
+      <i *ngIf="toast.type === 'info'" class="ri-information-fill"></i>
+      <i *ngIf="toast.type === 'warning'" class="ri-alert-fill"></i>
+    </div>
+    <div class="toast-content">
+      <h4 class="toast-title">{{ toast.title }}</h4>
+      <p class="toast-message">{{ toast.message }}</p>
+    </div>
+    <button class="toast-close" (click)="close(toast.id)">
+      <i class="ri-close-line"></i>
+    </button>
+  </div>
+</div>

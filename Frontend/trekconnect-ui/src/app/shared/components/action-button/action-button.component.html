@@ -1,0 +1,17 @@
+<button
+  [type]="type"
+  [disabled]="isDisabled || isLoading"
+  (click)="onClick($event)"
+  class="btn"
+  [class.btn-primary]="variant === 'primary'"
+  [class.btn-secondary]="variant === 'secondary'"
+  [class.btn-outline]="variant === 'outline'"
+  [class.full-width]="fullWidth"
+  [class.is-loading]="isLoading"
+>
+  <span *ngIf="isLoading" class="spinner"></span>
+  <i *ngIf="iconClass && !isLoading" [class]="iconClass" class="btn-icon"></i>
+  <span class="btn-text">
+    <ng-content></ng-content>
+  </span>
+</button>

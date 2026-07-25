@@ -1,0 +1,292 @@
+<!-- USER (TREKKER) DASHBOARD & EXPLORER LANDING PAGE -->
+<div class="user-home-wrapper">
+
+  <!-- 1. TOP GLASSMOPHISM NAVIGATION BAR -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/user/home">
+        <i class="ri-compass-3-fill logo-icon"></i>
+        <div class="brand-text">
+          <span class="brand-title">TrekConnect</span>
+          <span class="brand-badge">EXPLORE INDIA</span>
+        </div>
+      </div>
+
+      <div class="nav-search-bar">
+        <i class="ri-search-2-line search-icon"></i>
+        <input 
+          type="text" 
+          placeholder="Search fort treks, waterfalls, or regions (e.g. Torna, Rajmachi)..." 
+          [(ngModel)]="searchQuery"
+        />
+        <button *ngIf="searchQuery" class="clear-btn" (click)="searchQuery = ''">
+          <i class="ri-close-line"></i>
+        </button>
+      </div>
+
+      <div class="nav-actions">
+        <button class="nav-icon-btn" title="Saved Wishlist">
+          <i class="ri-heart-3-line"></i>
+        </button>
+        <button class="nav-icon-btn" title="My Bookings">
+          <i class="ri-ticket-2-line"></i>
+        </button>
+        
+        <div class="profile-menu-container">
+          <button class="profile-pill-btn" (click)="toggleProfileDropdown()">
+            <div class="user-avatar">
+              <i class="ri-user-3-fill"></i>
+            </div>
+            <span class="user-email-text">{{ currentUserEmail }}</span>
+            <span class="role-badge">TREKKER</span>
+            <i class="ri-arrow-down-s-line chevron-icon"></i>
+          </button>
+
+          <!-- Profile Dropdown Menu -->
+          <div class="profile-dropdown-menu" *ngIf="isProfileDropdownOpen">
+            <div class="dropdown-header">
+              <p class="user-name">{{ currentUserEmail }}</p>
+              <p class="user-role-label">Trekker Explorer</p>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" (click)="toggleProfileDropdown()"><i class="ri-user-line"></i> My Profile</a>
+            <a class="dropdown-item" (click)="toggleProfileDropdown()"><i class="ri-ticket-line"></i> My Bookings</a>
+            <a class="dropdown-item" (click)="toggleProfileDropdown()"><i class="ri-heart-line"></i> Saved Wishlist</a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout-item" (click)="onLogout()">
+              <i class="ri-logout-box-r-line"></i> Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- 2. HERO EXPLORATION BANNER -->
+  <header class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <span class="hero-subtitle">
+        <i class="ri-fire-fill glow-fire"></i> DISCOVER SAHYADRI & INDIAN PEAKS
+      </span>
+      <h1 class="hero-title">
+        Conquer New Peaks,<br>
+        <span class="gradient-text">Create Unforgettable Memories</span>
+      </h1>
+      <p class="hero-description">
+        Browse verified treks, night camping events, and waterfall expeditions organized by certified trek leaders across Maharashtra & India.
+      </p>
+
+      <!-- Filter Controls Bar -->
+      <div class="hero-filter-bar">
+        <div class="filter-group">
+          <label><i class="ri-map-pin-line"></i> Region</label>
+          <select [(ngModel)]="selectedRegion">
+            <option value="ALL">All Regions</option>
+            <option value="Pune">Pune & Velhe</option>
+            <option value="Lonavala">Lonavala / Karjat</option>
+            <option value="Raigad">Raigad & Kolad</option>
+            <option value="Nashik">Nashik & Igatpuri</option>
+            <option value="Ahmednagar">Ahmednagar & Bhandardara</option>
+            <option value="Himalayas">Himalayan Region</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label><i class="ri-pulse-line"></i> Difficulty</label>
+          <select [(ngModel)]="selectedDifficulty">
+            <option value="ALL">All Difficulties</option>
+            <option value="EASY">Easy (Beginner Friendly)</option>
+            <option value="MODERATE">Moderate (Active Walkers)</option>
+            <option value="HARD">Hard (Endurance Seekers)</option>
+          </select>
+        </div>
+
+        <div class="filter-group button-group">
+          <button class="search-submit-btn" (click)="selectedCategory = 'ALL'">
+            <i class="ri-search-line"></i> Explore {{ filteredTreks.length }} Treks
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3. CATEGORY PILL TABS -->
+  <section class="categories-section">
+    <div class="categories-container">
+      <button 
+        *ngFor="let cat of categories" 
+        class="category-pill"
+        [class.active]="selectedCategory === cat.id"
+        (click)="selectedCategory = cat.id"
+      >
+        <i [class]="cat.icon"></i>
+        <span>{{ cat.label }}</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- 4. FEATURED TREKS & EVENTS CATALOG GRID -->
+  <main class="catalog-section">
+    <div class="section-header">
+      <div>
+        <h2 class="section-title">Upcoming Trek Batches</h2>
+        <p class="section-subtitle">Showing {{ filteredTreks.length }} available trek expeditions</p>
+      </div>
+
+      <div class="view-toggle">
+        <span class="active-badge"><i class="ri-grid-fill"></i> Grid View</span>
+      </div>
+    </div>
+
+    <!-- Empty State if no treks match filter -->
+    <div class="empty-state-card" *ngIf="filteredTreks.length === 0">
+      <i class="ri-compass-search-line empty-icon"></i>
+      <h3>No Treks Match Your Filters</h3>
+      <p>Try clearing your region or difficulty filters to see all available trek expeditions.</p>
+      <button class="reset-filter-btn" (click)="selectedCategory = 'ALL'; selectedDifficulty = 'ALL'; selectedRegion = 'ALL'; searchQuery = ''">
+        Reset All Filters
+      </button>
+    </div>
+
+    <!-- Trek Cards Grid -->
+    <div class="treks-grid" *ngIf="filteredTreks.length > 0">
+      <div 
+        class="trek-card" 
+        *ngFor="let trek of filteredTreks"
+        (click)="openTrekDetail(trek)"
+      >
+        <div class="card-image-wrapper">
+          <img [src]="trek.imageUrl" [alt]="trek.title" class="card-image" />
+          <div class="card-gradient-overlay"></div>
+          
+          <!-- Difficulty Badge -->
+          <span 
+            class="difficulty-badge" 
+            [class.easy]="trek.difficulty === 'EASY'"
+            [class.moderate]="trek.difficulty === 'MODERATE'"
+            [class.hard]="trek.difficulty === 'HARD'"
+          >
+            {{ trek.difficulty }}
+          </span>
+
+          <!-- Wishlist Bookmark Toggle Button -->
+          <button class="bookmark-btn" [class.saved]="trek.isSaved" (click)="toggleSave(trek, $event)" title="Save to Wishlist">
+            <i [class]="trek.isSaved ? 'ri-heart-fill' : 'ri-heart-line'"></i>
+          </button>
+
+          <!-- Spots Remaining Indicator -->
+          <span class="spots-badge" [class.urgent]="trek.availableSlots <= 5">
+            <i class="ri-user-location-line"></i> {{ trek.availableSlots }} seats left
+          </span>
+        </div>
+
+        <div class="card-body">
+          <div class="location-row">
+            <span class="location-tag"><i class="ri-map-pin-2-line"></i> {{ trek.location }}</span>
+            <span class="rating-tag"><i class="ri-star-fill star-icon"></i> {{ trek.rating }} ({{ trek.reviewCount }})</span>
+          </div>
+
+          <h3 class="trek-title">{{ trek.title }}</h3>
+
+          <div class="meta-row">
+            <span class="meta-item"><i class="ri-calendar-event-line"></i> {{ trek.upcomingDate }}</span>
+            <span class="meta-item"><i class="ri-time-line"></i> {{ trek.durationDays }} Day</span>
+            <span class="meta-item"><i class="ri-mountain-line"></i> {{ trek.altitudeFt.toLocaleString('en-IN') }} ft</span>
+          </div>
+
+          <div class="organizer-row">
+            <i class="ri-shield-check-line verified-icon"></i>
+            <span class="organizer-name">{{ trek.organizerName }}</span>
+          </div>
+
+          <div class="card-footer">
+            <div class="price-container">
+              <span class="price-label">Price per slot</span>
+              <span class="price-value">₹{{ trek.pricePerSlot.toLocaleString('en-IN') }}</span>
+            </div>
+
+            <button class="view-details-btn">
+              <span>Book Seats</span>
+              <i class="ri-arrow-right-line"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- 5. TREK PREVIEW & BOOKING DETAIL MODAL -->
+  <div class="modal-backdrop" *ngIf="isDetailModalOpen && selectedTrek" (click)="closeDetailModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeDetailModal()">
+        <i class="ri-close-line"></i>
+      </button>
+
+      <div class="modal-header">
+        <img [src]="selectedTrek.imageUrl" [alt]="selectedTrek.title" class="modal-banner-img" />
+        <div class="modal-header-overlay"></div>
+        <div class="modal-header-text">
+          <span class="modal-difficulty" [class.hard]="selectedTrek.difficulty === 'HARD'">
+            {{ selectedTrek.difficulty }} DIFFICULTY
+          </span>
+          <h2 class="modal-title">{{ selectedTrek.title }}</h2>
+          <p class="modal-location"><i class="ri-map-pin-line"></i> {{ selectedTrek.location }} • Altitude: {{ selectedTrek.altitudeFt }} ft</p>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-info-pills">
+          <div class="info-pill">
+            <i class="ri-calendar-line"></i>
+            <div>
+              <span class="pill-label">Next Batch Date</span>
+              <span class="pill-value">{{ selectedTrek.upcomingDate }}</span>
+            </div>
+          </div>
+          <div class="info-pill">
+            <i class="ri-user-heart-line"></i>
+            <div>
+              <span class="pill-label">Organizer</span>
+              <span class="pill-value">{{ selectedTrek.organizerName }}</span>
+            </div>
+          </div>
+          <div class="info-pill">
+            <i class="ri-group-line"></i>
+            <div>
+              <span class="pill-label">Capacity</span>
+              <span class="pill-value">{{ selectedTrek.availableSlots }} / {{ selectedTrek.maxSlots }} Available</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-section">
+          <h3>Trek Overview</h3>
+          <p class="modal-description">{{ selectedTrek.description }}</p>
+        </div>
+
+        <div class="modal-section">
+          <h3>What's Included</h3>
+          <ul class="inclusions-list">
+            <li *ngFor="let inc of selectedTrek.inclusions">
+              <i class="ri-checkbox-circle-fill check-icon"></i>
+              <span>{{ inc }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="modal-price">
+          <span class="price-sub">Total Payable Amount</span>
+          <span class="price-main">₹{{ selectedTrek.pricePerSlot.toLocaleString('en-IN') }} <small>/ seat</small></span>
+        </div>
+
+        <button class="book-now-btn" (click)="onBookTrek(selectedTrek)">
+          <i class="ri-flashlight-line"></i> Proceed to Seat Selection
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>

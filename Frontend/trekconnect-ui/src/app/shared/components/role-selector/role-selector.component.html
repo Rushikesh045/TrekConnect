@@ -1,0 +1,15 @@
+<div class="role-selector-container">
+  <label class="role-label">Sign in as</label>
+  <div class="role-pills">
+    <button
+      *ngFor="let role of roles"
+      type="button"
+      class="role-pill"
+      [class.active]="selectedRole === role.value"
+      (click)="selectRole(role.value)"
+    >
+      <i [class]="role.icon"></i>
+      <span>{{ role.label }}</span>
+    </button>
+  </div>
+</div>

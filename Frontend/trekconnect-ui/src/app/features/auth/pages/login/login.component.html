@@ -1,0 +1,59 @@
+<app-auth-card-layout
+  title="Sign In to TrekConnect"
+  subtitle="Access your expedition bookings, saved treks, and organizer dashboard"
+>
+  <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+    <!-- Reusable Role Selector Component -->
+    <app-role-selector
+      [selectedRole]="selectedRole"
+      (roleChange)="onRoleChange($event)"
+    ></app-role-selector>
+
+    <!-- Reusable Email Form Input Component -->
+    <app-form-input
+      label="Email Address"
+      type="email"
+      placeholder="e.g. trekker@trekconnect.com"
+      iconClass="ri-mail-line"
+      [isRequired]="true"
+      formControlName="email"
+      [errorMessage]="emailError"
+    ></app-form-input>
+
+    <!-- Reusable Password Form Input Component -->
+    <app-form-input
+      label="Password"
+      type="password"
+      placeholder="Enter your password"
+      iconClass="ri-lock-2-line"
+      [isRequired]="true"
+      formControlName="password"
+      [errorMessage]="passwordError"
+    ></app-form-input>
+
+    <!-- Remember Me & Forgot Password Row -->
+    <div class="form-options">
+      <label class="remember-me">
+        <input type="checkbox" [(ngModel)]="rememberMe" [ngModelOptions]="{standalone: true}" />
+        <span>Remember me</span>
+      </label>
+      <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+    </div>
+
+    <!-- Reusable Action Button Component -->
+    <app-action-button
+      type="submit"
+      variant="primary"
+      [isLoading]="isLoading"
+      [isDisabled]="loginForm.invalid"
+      iconClass="ri-login-circle-line"
+    >
+      Sign In
+    </app-action-button>
+
+    <!-- Form Footer Links -->
+    <div class="auth-footer-links">
+      <p>Don't have an account? <a routerLink="/auth/register" class="signup-link">Create Account</a></p>
+    </div>
+  </form>
+</app-auth-card-layout>

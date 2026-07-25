@@ -1,0 +1,40 @@
+<div class="form-group" [class.has-error]="!!errorMessage">
+  <label *ngIf="label" class="form-label">
+    {{ label }} <span *ngIf="isRequired" class="required-star">*</span>
+  </label>
+
+  <div class="input-wrapper">
+    <!-- Icon Prefix -->
+    <i *ngIf="iconClass" class="prefix-icon" [ngClass]="iconClass"></i>
+
+    <!-- Input Control -->
+    <input
+      [type]="currentType"
+      [placeholder]="placeholder"
+      [value]="value"
+      [disabled]="isDisabled"
+      (input)="onInput($event)"
+      (blur)="onTouched()"
+      class="form-control"
+      [class.has-prefix]="!!iconClass"
+      [class.has-suffix]="type === 'password'"
+    />
+
+    <!-- Password Toggle Suffix -->
+    <button
+      *ngIf="type === 'password'"
+      type="button"
+      class="password-toggle-btn"
+      (click)="togglePasswordVisibility()"
+      tabindex="-1"
+      aria-label="Toggle password visibility"
+    >
+      <i [class]="showPassword ? 'ri-eye-off-line' : 'ri-eye-line'"></i>
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="error-text">
+    <i class="ri-error-warning-line"></i> {{ errorMessage }}
+  </div>
+</div>

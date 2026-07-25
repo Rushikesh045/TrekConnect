@@ -1,0 +1,26 @@
+.register-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-footer-links {
+  margin-top: 1.75rem;
+  text-align: center;
+
+  p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+
+    .login-link {
+      color: var(--primary-400);
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 0.25rem;
+
+      &:hover {
+        color: var(--primary-500);
+        text-decoration: underline;
+      }
+    }
+  }
+}

@@ -1,0 +1,55 @@
+<div class="auth-page-container">
+  <!-- Background Glow Accents -->
+  <div class="bg-blur-orb orb-1"></div>
+  <div class="bg-blur-orb orb-2"></div>
+
+  <div class="auth-wrapper animate-fade-in">
+    <!-- Left Hero Showcase Panel -->
+    <div class="auth-hero-panel">
+      <div class="brand-header">
+        <div class="brand-logo">
+          <i class="ri-compass-3-line"></i>
+        </div>
+        <span class="brand-name">Trek<span>Connect</span></span>
+      </div>
+
+      <div class="hero-content">
+        <span class="hero-badge">
+          <i class="ri-fire-fill"></i> India's #1 Trek Marketplace
+        </span>
+        <h2>{{ heroTitle }}</h2>
+        <p>{{ heroSubtitle }}</p>
+
+        <!-- Feature Chips -->
+        <div class="feature-chips">
+          <div class="chip">
+            <i class="ri-shield-check-fill"></i> Verified Organizers
+          </div>
+          <div class="chip">
+            <i class="ri-lock-2-fill"></i> Instant & Secure Payments
+          </div>
+          <div class="chip">
+            <i class="ri-team-fill"></i> 100,000+ Trekkers
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-footer">
+        <p>© 2026 TrekConnect Platform. Built for Explorers.</p>
+      </div>
+    </div>
+
+    <!-- Right Form Content Panel (Reusable Slot) -->
+    <div class="auth-form-panel">
+      <div class="form-header">
+        <h1>{{ title }}</h1>
+        <p>{{ subtitle }}</p>
+      </div>
+
+      <!-- Main Slot for Form Content -->
+      <div class="form-content">
+        <ng-content></ng-content>
+      </div>
+    </div>
+  </div>
+</div>
