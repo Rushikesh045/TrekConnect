@@ -1,61 +1,36 @@
 package com.trekconnect.core.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 
 /**
  * Entity representing the User Profile stored in main_db.
  * 
  * WHY THIS ENTITY WAS CREATED:
- * This entity holds trekker profile metadata (display name, phone, bio, avatar picture URL).
- * It uses the universal user_id (UUID) matching auth_db.users_credentials.id.
- * It is populated asynchronously when a user registers, via the RabbitMQ 'user.registered' event.
+ * Holds trekker profile metadata (display name, phone, bio, avatar picture URL).
+ * Uses universal user_id matching auth_db.users_credentials.id.
+ * Populated asynchronously when a user registers via the RabbitMQ 'user.registered' event.
  */
 @Entity
 @Table(name = "user_profile")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class UserProfile {
 
-    /**
-     * Primary Key matching auth_db.users_credentials.id.
-     * No foreign key constraint across databases (enforced at application level).
-     */
     @Id
     @Column(name = "user_id", length = 36)
     private String userId;
 
-    /**
-     * User's full display name.
-     */
     @Column(nullable = false, length = 150)
     private String name;
 
-    /**
-     * Contact phone number.
-     */
     @Column(length = 15)
     private String phone;
 
-    /**
-     * Profile picture URL stored in cloud storage / S3.
-     */
     @Column(name = "profile_pic_url", length = 500)
     private String profilePicUrl;
 
-    /**
-     * User's biography / trekker tagline.
-     */
     @Column(columnDefinition = "TEXT")
     private String bio;
 
-    /**
-     * Denormalized user role copy ('USER', 'ORGANIZER', 'ADMIN') for local query performance.
-     */
     @Column(nullable = false, length = 20)
     private String role;
 
@@ -64,6 +39,88 @@ public class UserProfile {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public UserProfile() {
+    }
+
+    public UserProfile(String userId, String name, String phone, String profilePicUrl, String bio, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.userId = userId;
+        this.name = name;
+        this.phone = phone;
+        this.profilePicUrl = profilePicUrl;
+        this.bio = bio;
+        this.role = role;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public static UserProfileBuilder builder() {
+        return new UserProfileBuilder();
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getPhone() {
+        return phone;
+    }
+
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+
+    public String getProfilePicUrl() {
+        return profilePicUrl;
+    }
+
+    public void setProfilePicUrl(String profilePicUrl) {
+        this.profilePicUrl = profilePicUrl;
+    }
+
+    public String getBio() {
+        return bio;
+    }
+
+    public void setBio(String bio) {
+        this.bio = bio;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     @PrePersist
     public void prePersist() {
@@ -75,5 +132,60 @@ public class UserProfile {
     @PreUpdate
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
+    }
+
+    public static class UserProfileBuilder {
+        private String userId;
+        private String name;
+        private String phone;
+        private String profilePicUrl;
+        private String bio;
+        private String role;
+        private LocalDateTime createdAt;
+        private LocalDateTime updatedAt;
+
+        public UserProfileBuilder userId(String userId) {
+            this.userId = userId;
+            return this;
+        }
+
+        public UserProfileBuilder name(String name) {
+            this.name = name;
+            return this;
+        }
+
+        public UserProfileBuilder phone(String phone) {
+            this.phone = phone;
+            return this;
+        }
+
+        public UserProfileBuilder profilePicUrl(String profilePicUrl) {
+            this.profilePicUrl = profilePicUrl;
+            return this;
+        }
+
+        public UserProfileBuilder bio(String bio) {
+            this.bio = bio;
+            return this;
+        }
+
+        public UserProfileBuilder role(String role) {
+            this.role = role;
+            return this;
+        }
+
+        public UserProfileBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public UserProfileBuilder updatedAt(LocalDateTime updatedAt) {
+            this.updatedAt = updatedAt;
+            return this;
+        }
+
+        public UserProfile build() {
+            return new UserProfile(userId, name, phone, profilePicUrl, bio, role, createdAt, updatedAt);
+        }
     }
 }

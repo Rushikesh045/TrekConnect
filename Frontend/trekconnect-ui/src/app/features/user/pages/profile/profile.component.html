@@ -1,0 +1,83 @@
+<!-- USER PROFILE MANAGEMENT PAGE -->
+<div class="profile-page-wrapper">
+  
+  <!-- Navigation Header -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/user/home">
+        <i class="ri-compass-3-fill logo-icon"></i>
+        <span class="brand-title">TrekConnect</span>
+      </div>
+      <a routerLink="/user/home" class="back-link">
+        <i class="ri-arrow-left-line"></i> Back to Explorer
+      </a>
+    </div>
+  </nav>
+
+  <main class="profile-container">
+    
+    <!-- Profile Card Header -->
+    <div class="profile-header-card">
+      <div class="header-avatar-section">
+        <div class="avatar-circle">
+          <img *ngIf="profileForm.get('profilePicUrl')?.value" [src]="profileForm.get('profilePicUrl')?.value" alt="Avatar" />
+          <i *ngIf="!profileForm.get('profilePicUrl')?.value" class="ri-user-3-fill"></i>
+        </div>
+        <div class="header-info">
+          <h2 class="user-display-name">{{ profileForm.get('name')?.value || 'Trekker Explorer' }}</h2>
+          <p class="user-email-subtitle"><i class="ri-mail-line"></i> {{ userEmail }}</p>
+          <div class="badges-row">
+            <span class="role-badge"><i class="ri-shield-user-line"></i> {{ userRole }}</span>
+            <span class="status-badge"><i class="ri-checkbox-circle-line"></i> Account Active</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <a routerLink="/organizer/apply" class="apply-organizer-btn" *ngIf="userRole === 'USER'">
+          <i class="ri-award-line"></i> Apply to Become Organizer
+        </a>
+      </div>
+    </div>
+
+    <!-- Main Edit Form Section -->
+    <div class="profile-form-card">
+      <h3 class="form-title"><i class="ri-edit-box-line"></i> Edit Profile Information</h3>
+
+      <form [formGroup]="profileForm" (ngSubmit)="onSubmit()">
+        <div class="form-grid">
+          
+          <div class="form-group">
+            <label for="name">Full Name <span class="required">*</span></label>
+            <input type="text" id="name" formControlName="name" placeholder="Enter your full display name" />
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <input type="text" id="phone" formControlName="phone" placeholder="+91 98765 43210" />
+          </div>
+
+          <div class="form-group full-width">
+            <label for="profilePicUrl">Profile Picture URL</label>
+            <input type="text" id="profilePicUrl" formControlName="profilePicUrl" placeholder="https://example.com/my-photo.jpg" />
+          </div>
+
+          <div class="form-group full-width">
+            <label for="bio">Trekker Bio / Tagline</label>
+            <textarea id="bio" formControlName="bio" rows="4" placeholder="Share your trekking experience, favorite peaks, or Sahyadri stories..."></textarea>
+          </div>
+
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="save-btn" [disabled]="isSaving">
+            <i class="ri-save-line" *ngIf="!isSaving"></i>
+            <span *ngIf="!isSaving">Save Profile Changes</span>
+            <span *ngIf="isSaving">Saving Changes...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </main>
+</div>

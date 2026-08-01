@@ -1,49 +1,25 @@
-package com.trekconnect.core.entity;
+package com.trekconnect.core.dto.response;
 
-import jakarta.persistence.*;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
- * Entity representing Trek Reference Information stored in main_db.
+ * Response DTO returning Trek catalog details.
  */
-@Entity
-@Table(name = "treks")
-public class Trek {
+public class TrekResponse {
 
-    @Id
-    @Column(length = 36)
     private String id;
-
-    @Column(nullable = false, length = 200)
     private String name;
-
-    @Column(length = 100)
     private String region;
-
-    @Column(columnDefinition = "TEXT")
     private String history;
-
-    @Column(name = "distance_km", precision = 6, scale = 2)
     private BigDecimal distanceKm;
-
-    @Column(nullable = false, length = 20)
     private String difficulty;
-
-    @Column(name = "altitude_m")
     private Integer altitudeMeters;
-
-    @Column(name = "best_season", length = 100)
     private String bestSeason;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    public Trek() {
+    public TrekResponse() {
     }
 
-    public Trek(String id, String name, String region, String history, BigDecimal distanceKm, String difficulty, Integer altitudeMeters, String bestSeason, LocalDateTime createdAt) {
+    public TrekResponse(String id, String name, String region, String history, BigDecimal distanceKm, String difficulty, Integer altitudeMeters, String bestSeason) {
         this.id = id;
         this.name = name;
         this.region = region;
@@ -52,11 +28,10 @@ public class Trek {
         this.difficulty = difficulty;
         this.altitudeMeters = altitudeMeters;
         this.bestSeason = bestSeason;
-        this.createdAt = createdAt;
     }
 
-    public static TrekBuilder builder() {
-        return new TrekBuilder();
+    public static TrekResponseBuilder builder() {
+        return new TrekResponseBuilder();
     }
 
     public String getId() {
@@ -123,25 +98,7 @@ public class Trek {
         this.bestSeason = bestSeason;
     }
 
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID().toString();
-        }
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
-    }
-
-    public static class TrekBuilder {
+    public static class TrekResponseBuilder {
         private String id;
         private String name;
         private String region;
@@ -150,55 +107,49 @@ public class Trek {
         private String difficulty;
         private Integer altitudeMeters;
         private String bestSeason;
-        private LocalDateTime createdAt;
 
-        public TrekBuilder id(String id) {
+        public TrekResponseBuilder id(String id) {
             this.id = id;
             return this;
         }
 
-        public TrekBuilder name(String name) {
+        public TrekResponseBuilder name(String name) {
             this.name = name;
             return this;
         }
 
-        public TrekBuilder region(String region) {
+        public TrekResponseBuilder region(String region) {
             this.region = region;
             return this;
         }
 
-        public TrekBuilder history(String history) {
+        public TrekResponseBuilder history(String history) {
             this.history = history;
             return this;
         }
 
-        public TrekBuilder distanceKm(BigDecimal distanceKm) {
+        public TrekResponseBuilder distanceKm(BigDecimal distanceKm) {
             this.distanceKm = distanceKm;
             return this;
         }
 
-        public TrekBuilder difficulty(String difficulty) {
+        public TrekResponseBuilder difficulty(String difficulty) {
             this.difficulty = difficulty;
             return this;
         }
 
-        public TrekBuilder altitudeMeters(Integer altitudeMeters) {
+        public TrekResponseBuilder altitudeMeters(Integer altitudeMeters) {
             this.altitudeMeters = altitudeMeters;
             return this;
         }
 
-        public TrekBuilder bestSeason(String bestSeason) {
+        public TrekResponseBuilder bestSeason(String bestSeason) {
             this.bestSeason = bestSeason;
             return this;
         }
 
-        public TrekBuilder createdAt(LocalDateTime createdAt) {
-            this.createdAt = createdAt;
-            return this;
-        }
-
-        public Trek build() {
-            return new Trek(id, name, region, history, distanceKm, difficulty, altitudeMeters, bestSeason, createdAt);
+        public TrekResponse build() {
+            return new TrekResponse(id, name, region, history, distanceKm, difficulty, altitudeMeters, bestSeason);
         }
     }
 }

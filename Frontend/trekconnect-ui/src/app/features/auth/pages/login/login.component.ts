@@ -97,9 +97,9 @@ export class LoginComponent {
 
         // Step 5: Perform role-based navigation redirect
         if (res.user.role === 'ADMIN') {
-          this.router.navigate(['/admin']);
+          this.router.navigate(['/admin/dashboard']);
         } else if (res.user.role === 'ORGANIZER') {
-          this.router.navigate(['/organizer']);
+          this.router.navigate(['/organizer/dashboard']);
         } else {
           this.router.navigate(['/user/home']);
         }

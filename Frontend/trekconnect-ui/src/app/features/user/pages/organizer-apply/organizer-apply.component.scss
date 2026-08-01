@@ -1,0 +1,197 @@
+.apply-page-wrapper {
+  min-height: 100vh;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  padding-bottom: 4rem;
+}
+
+.top-navbar {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+
+    .logo-icon { font-size: 1.8rem; color: var(--primary-500); }
+    .brand-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+  }
+
+  .back-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    &:hover { color: var(--primary-400); }
+  }
+}
+
+.apply-container {
+  max-width: 780px;
+  margin: 2.5rem auto 0;
+  padding: 0 1.5rem;
+}
+
+.apply-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+
+  .hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 800;
+    color: var(--accent-cyan);
+    background: rgba(6, 182, 212, 0.15);
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    margin-bottom: 0.85rem;
+  }
+
+  .hero-title {
+    font-size: 2.2rem;
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.98rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 620px;
+    margin: 0 auto;
+  }
+}
+
+.status-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+
+  &.pending {
+    border-color: rgba(245, 158, 11, 0.4);
+    .status-header i { color: #f59e0b; }
+  }
+  &.verified {
+    border-color: rgba(16, 185, 129, 0.4);
+    .status-header i { color: #10b981; }
+  }
+  &.rejected {
+    border-color: rgba(239, 68, 68, 0.4);
+    .status-header i { color: #ef4444; }
+  }
+
+  .status-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+
+    i { font-size: 2rem; }
+    h3 { font-size: 1.1rem; font-weight: 800; margin: 0; }
+    p { font-size: 0.85rem; color: var(--text-secondary); margin: 0; }
+  }
+
+  .status-body {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border-subtle);
+
+    .rejection-reason { color: #f87171; }
+  }
+}
+
+.apply-form-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  padding: 2rem;
+
+  .form-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-400);
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    margin-bottom: 1.25rem;
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      .required { color: #ef4444; }
+    }
+
+    input {
+      padding: 0.75rem 1rem;
+      background: rgba(17, 24, 39, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.65rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+      }
+    }
+
+    .help-text {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+
+    .submit-btn {
+      padding: 0.75rem 1.75rem;
+      background: linear-gradient(135deg, var(--accent-cyan) 0%, #0284c7 100%);
+      border: none;
+      border-radius: 0.65rem;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+  }
+}

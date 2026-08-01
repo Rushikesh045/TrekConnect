@@ -1,7 +1,7 @@
 package com.trekconnect.core.config;
 
 import com.trekconnect.core.security.JwtAuthFilter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -22,20 +22,26 @@ import java.util.List;
  * 
  * WHY THIS CLASS WAS CREATED:
  * Configures stateless session policy, permits public browse endpoints (/api/events/**, /api/treks/**, /actuator/**),
- * and registers JwtAuthFilter to enforce role-based access control (@PreAuthorize).
+ * disables default form login security password prompts, and registers JwtAuthFilter to enforce stateless RS256 token verification.
  */
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
-@RequiredArgsConstructor
 public class SecurityConfig {
 
     private final JwtAuthFilter jwtAuthFilter;
+
+    @Autowired
+    public SecurityConfig(JwtAuthFilter jwtAuthFilter) {
+        this.jwtAuthFilter = jwtAuthFilter;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(AbstractHttpConfigurer::disable)
+            .formLogin(AbstractHttpConfigurer::disable)
+            .httpBasic(AbstractHttpConfigurer::disable)
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth

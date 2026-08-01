@@ -1,0 +1,213 @@
+.profile-page-wrapper {
+  min-height: 100vh;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  padding-bottom: 4rem;
+}
+
+.top-navbar {
+  background: rgba(17, 24, 39, 0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-subtle);
+
+  .nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0.85rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    text-decoration: none;
+
+    .logo-icon { font-size: 1.8rem; color: var(--primary-500); }
+    .brand-title { font-size: 1.2rem; font-weight: 800; color: #fff; }
+  }
+
+  .back-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.88rem;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+
+    &:hover { color: var(--primary-400); }
+  }
+}
+
+.profile-container {
+  max-width: 900px;
+  margin: 2.5rem auto 0;
+  padding: 0 1.5rem;
+}
+
+.profile-header-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+
+  .header-avatar-section {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+  }
+
+  .avatar-circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-700) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    color: #fff;
+    overflow: hidden;
+
+    img { width: 100%; height: 100%; object-fit: cover; }
+  }
+
+  .user-display-name {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+  }
+
+  .user-email-subtitle {
+    font-size: 0.88rem;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem;
+  }
+
+  .badges-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+
+    .role-badge {
+      font-size: 0.72rem;
+      font-weight: 800;
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--primary-400);
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+    }
+
+    .status-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      background: rgba(56, 189, 248, 0.15);
+      color: #38bdf8;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+    }
+  }
+
+  .apply-organizer-btn {
+    padding: 0.65rem 1.25rem;
+    background: linear-gradient(135deg, var(--accent-cyan) 0%, #0284c7 100%);
+    border-radius: 0.65rem;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.88rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+    transition: transform 0.2s ease;
+
+    &:hover { transform: translateY(-2px); }
+  }
+}
+
+.profile-form-card {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid var(--border-subtle);
+  border-radius: 1.25rem;
+  padding: 2rem;
+
+  .form-title {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--primary-400);
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+
+  .full-width {
+    grid-column: 1 / -1;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+
+    label {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      .required { color: #ef4444; }
+    }
+
+    input, textarea {
+      padding: 0.75rem 1rem;
+      background: rgba(17, 24, 39, 0.7);
+      border: 1px solid var(--border-subtle);
+      border-radius: 0.65rem;
+      color: var(--text-primary);
+      font-size: 0.9rem;
+
+      &:focus {
+        outline: none;
+        border-color: var(--primary-500);
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+      }
+    }
+  }
+
+  .form-actions {
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+
+    .save-btn {
+      padding: 0.75rem 1.75rem;
+      background: linear-gradient(135deg, var(--primary-500) 0%, var(--primary-600) 100%);
+      border: none;
+      border-radius: 0.65rem;
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+  }
+}

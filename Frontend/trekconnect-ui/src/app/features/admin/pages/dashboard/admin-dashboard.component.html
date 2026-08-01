@@ -1,0 +1,227 @@
+<!-- ADMIN ROLE VERIFICATION & DISPUTE OVERSIGHT DASHBOARD -->
+<div class="admin-dashboard-wrapper">
+  
+  <!-- Navigation Header -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/admin/dashboard">
+        <i class="ri-shield-flash-fill logo-icon"></i>
+        <div class="brand-text">
+          <span class="brand-title">TrekConnect</span>
+          <span class="admin-badge">ADMIN CONTROL</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <span class="admin-profile-pill">
+          <i class="ri-user-settings-line"></i> {{ adminEmail }}
+        </span>
+        <button class="logout-btn" (click)="onLogout()">
+          <i class="ri-logout-box-r-line"></i> Sign Out
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-container">
+    
+    <!-- Hero Header -->
+    <header class="dashboard-header">
+      <div>
+        <h1 class="header-title">Admin Management & Dispute Dashboard</h1>
+        <p class="header-subtitle">Review organizer verification credentials and oversee trekker booking dispute resolutions.</p>
+      </div>
+    </header>
+
+    <!-- Metrics Summary Overview Bar -->
+    <div class="stats-overview-grid">
+      <div class="stat-card">
+        <div class="stat-icon user-icon"><i class="ri-team-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Total Trekkers</span>
+          <span class="stat-value">{{ stats.totalUsers }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon organizer-icon"><i class="ri-verified-badge-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Verified Organizers</span>
+          <span class="stat-value">{{ stats.totalOrganizers }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card highlight">
+        <div class="stat-icon pending-icon"><i class="ri-time-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Pending Approvals</span>
+          <span class="stat-value urgent">{{ stats.pendingApprovals }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon trek-icon"><i class="ri-scales-3-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Dispute Tickets</span>
+          <span class="stat-value">{{ disputes.length }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Management Section -->
+    <section class="management-section">
+      
+      <!-- Filter Tabs -->
+      <div class="filter-tabs">
+        <button class="tab-btn" [class.active]="selectedTab === 'PENDING'" (click)="setTab('PENDING')">
+          <i class="ri-time-line"></i> Pending Verification ({{ stats.pendingApprovals }})
+        </button>
+        <button class="tab-btn" [class.active]="selectedTab === 'VERIFIED'" (click)="setTab('VERIFIED')">
+          <i class="ri-checkbox-circle-line"></i> Verified Organizers
+        </button>
+        <button class="tab-btn" [class.active]="selectedTab === 'REJECTED'" (click)="setTab('REJECTED')">
+          <i class="ri-close-circle-line"></i> Rejected Applications
+        </button>
+        <button class="tab-btn" [class.active]="selectedTab === 'DISPUTES'" (click)="setTab('DISPUTES')">
+          <i class="ri-scales-3-line"></i> Dispute Oversights ({{ disputes.length }})
+        </button>
+        <button class="tab-btn" [class.active]="selectedTab === 'ALL'" (click)="setTab('ALL')">
+          <i class="ri-list-check"></i> All Applications
+        </button>
+      </div>
+
+      <!-- APPLICATIONS TABLE -->
+      <div class="table-container" *ngIf="selectedTab !== 'DISPUTES'">
+        <table class="applications-table" *ngIf="applications.length > 0">
+          <thead>
+            <tr>
+              <th>Organization Name</th>
+              <th>Applicant User ID</th>
+              <th>Verification Docs</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let app of applications">
+              <td>
+                <span class="org-name-text">{{ app.organizationName }}</span>
+              </td>
+              <td>
+                <span class="user-id-code"><code>{{ app.userId }}</code></span>
+              </td>
+              <td>
+                <a *ngIf="app.verificationDocsUrl" [href]="app.verificationDocsUrl" target="_blank" class="doc-link">
+                  <i class="ri-file-pdf-2-line"></i> View Certificate
+                </a>
+                <span *ngIf="!app.verificationDocsUrl" class="no-doc">No Docs Attached</span>
+              </td>
+              <td>
+                <span class="status-badge" [class.pending]="app.verificationStatus === 'PENDING'" [class.verified]="app.verificationStatus === 'VERIFIED'" [class.rejected]="app.verificationStatus === 'REJECTED'">
+                  {{ app.verificationStatus }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons-group">
+                  <button 
+                    *ngIf="app.verificationStatus !== 'VERIFIED'"
+                    class="verify-btn" 
+                    (click)="onVerify(app)"
+                    title="Approve & Grant Organizer Role"
+                  >
+                    <i class="ri-check-line"></i> Approve & Verify
+                  </button>
+
+                  <button 
+                    *ngIf="app.verificationStatus !== 'REJECTED'"
+                    class="reject-btn" 
+                    (click)="openRejectModal(app)"
+                    title="Reject Application"
+                  >
+                    <i class="ri-close-line"></i> Reject
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="empty-table-card" *ngIf="applications.length === 0">
+          <i class="ri-inbox-archive-line empty-icon"></i>
+          <h3>No Applications Found</h3>
+          <p>There are currently no organizer applications matching status filter "{{ selectedTab }}".</p>
+        </div>
+      </div>
+
+      <!-- DISPUTES OVERSIGHT TABLE -->
+      <div class="table-container" *ngIf="selectedTab === 'DISPUTES'">
+        <table class="applications-table" *ngIf="disputes.length > 0">
+          <thead>
+            <tr>
+              <th>Ticket ID</th>
+              <th>Payment Reference</th>
+              <th>Trekker Name</th>
+              <th>Dispute Reason</th>
+              <th>Status</th>
+              <th>Admin Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let disp of disputes">
+              <td><code>{{ disp.id }}</code></td>
+              <td><code>{{ disp.paymentId }}</code></td>
+              <td><strong>{{ disp.requestedByUserName }}</strong></td>
+              <td><span class="dispute-reason">{{ disp.reason }}</span></td>
+              <td>
+                <span class="status-badge" [class.pending]="disp.status === 'PENDING'" [class.verified]="disp.status === 'APPROVED'" [class.rejected]="disp.status === 'REJECTED'">
+                  {{ disp.status }}
+                </span>
+              </td>
+              <td>
+                <div class="action-buttons-group" *ngIf="disp.status === 'PENDING'">
+                  <button class="verify-btn" (click)="onResolveDispute(disp, 'APPROVED')">
+                    <i class="ri-check-line"></i> Approve Refund
+                  </button>
+                  <button class="reject-btn" (click)="onResolveDispute(disp, 'REJECTED')">
+                    <i class="ri-close-line"></i> Dismiss Dispute
+                  </button>
+                </div>
+                <span *ngIf="disp.status !== 'PENDING'" class="resolved-tag"><i class="ri-checkbox-circle-fill"></i> Resolved</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Rejection Modal -->
+  <div class="modal-backdrop" *ngIf="isRejectModalOpen" (click)="closeRejectModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeRejectModal()"><i class="ri-close-line"></i></button>
+
+      <div class="modal-header">
+        <h3>Reject Organizer Application</h3>
+        <p>Organization: <strong>{{ selectedApplicationForReject?.organizationName }}</strong></p>
+      </div>
+
+      <div class="modal-body">
+        <label for="rejectionReason">Specify Reason for Rejection <span class="required">*</span></label>
+        <textarea 
+          id="rejectionReason" 
+          [(ngModel)]="rejectionReason" 
+          rows="4" 
+          placeholder="e.g. Government registration documents are unreadable or missing..."
+        ></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeRejectModal()">Cancel</button>
+        <button class="confirm-reject-btn" (click)="confirmReject()">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+
+</div>

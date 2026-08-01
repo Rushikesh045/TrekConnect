@@ -1,0 +1,87 @@
+<!-- ORGANIZER APPLICATION ONBOARDING PAGE -->
+<div class="apply-page-wrapper">
+  
+  <!-- Navigation Header -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/user/home">
+        <i class="ri-compass-3-fill logo-icon"></i>
+        <span class="brand-title">TrekConnect</span>
+      </div>
+      <a routerLink="/user/profile" class="back-link">
+        <i class="ri-arrow-left-line"></i> Back to Profile
+      </a>
+    </div>
+  </nav>
+
+  <main class="apply-container">
+    
+    <!-- Hero Banner -->
+    <div class="apply-hero">
+      <span class="hero-badge"><i class="ri-award-fill"></i> ORGANIZER ONBOARDING</span>
+      <h1 class="hero-title">Become a Verified Trek Organizer</h1>
+      <p class="hero-subtitle">
+        Publish Sahyadri & Himalayan trek events, manage participant bookings, and lead thousands of trekkers on exciting expeditions across India.
+      </p>
+    </div>
+
+    <!-- Status Banner if Application Already Exists -->
+    <div class="status-card" *ngIf="existingApplication" [class.pending]="existingApplication.verificationStatus === 'PENDING'" [class.verified]="existingApplication.verificationStatus === 'VERIFIED'" [class.rejected]="existingApplication.verificationStatus === 'REJECTED'">
+      <div class="status-header">
+        <i [class]="existingApplication.verificationStatus === 'VERIFIED' ? 'ri-checkbox-circle-fill' : existingApplication.verificationStatus === 'REJECTED' ? 'ri-close-circle-fill' : 'ri-time-fill'"></i>
+        <div>
+          <h3>Application Status: {{ existingApplication.verificationStatus }}</h3>
+          <p>Submitted for <strong>{{ existingApplication.organizationName }}</strong></p>
+        </div>
+      </div>
+
+      <div class="status-body" *ngIf="existingApplication.verificationStatus === 'PENDING'">
+        <p>Your application is currently under review by our Admin verification team. We will notify you once approved!</p>
+      </div>
+      <div class="status-body" *ngIf="existingApplication.verificationStatus === 'VERIFIED'">
+        <p>Congratulations! Your organizer account is active. You can now access the Organizer Dashboard to post treks.</p>
+      </div>
+      <div class="status-body" *ngIf="existingApplication.verificationStatus === 'REJECTED'">
+        <p class="rejection-reason"><strong>Reason for rejection:</strong> {{ existingApplication.rejectionReason || 'Documents missing or unverified.' }}</p>
+        <p>You can update your organization details and resubmit below.</p>
+      </div>
+    </div>
+
+    <!-- Application Form Card -->
+    <div class="apply-form-card">
+      <h3 class="form-title"><i class="ri-article-line"></i> Organization Details</h3>
+
+      <form [formGroup]="applyForm" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="organizationName">Trek Organization / Business Name <span class="required">*</span></label>
+          <input 
+            type="text" 
+            id="organizationName" 
+            formControlName="organizationName" 
+            placeholder="e.g. Sahyadri Wanderers Adventures & Treks" 
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="verificationDocsUrl">Verification Documents URL (GSTIN / Govt ID / Certificate)</label>
+          <input 
+            type="text" 
+            id="verificationDocsUrl" 
+            formControlName="verificationDocsUrl" 
+            placeholder="https://example.com/docs/gstin-certificate.pdf" 
+          />
+          <small class="help-text">Provide a link to your organization registration certificate or identity proof for fast verification.</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="submit-btn" [disabled]="isSubmitting">
+            <i class="ri-send-plane-fill" *ngIf="!isSubmitting"></i>
+            <span *ngIf="!isSubmitting">{{ existingApplication ? 'Resubmit Application' : 'Submit Application' }}</span>
+            <span *ngIf="isSubmitting">Submitting Application...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </main>
+</div>

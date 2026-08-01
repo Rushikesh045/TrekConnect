@@ -1,7 +1,6 @@
 package com.trekconnect.core.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -16,11 +15,6 @@ import java.util.UUID;
  */
 @Entity
 @Table(name = "events")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Event {
 
     @Id
@@ -51,7 +45,6 @@ public class Event {
     private Integer capacityTotal;
 
     @Column(name = "capacity_booked", nullable = false)
-    @Builder.Default
     private Integer capacityBooked = 0;
 
     /**
@@ -59,14 +52,9 @@ public class Event {
      */
     @Version
     @Column(nullable = false)
-    @Builder.Default
     private Integer version = 0;
 
-    /**
-     * Event Status: 'PENDING_APPROVAL', 'APPROVED', 'REJECTED', 'CANCELLED', 'COMPLETED'.
-     */
     @Column(nullable = false, length = 30)
-    @Builder.Default
     private String status = "PENDING_APPROVAL";
 
     @Column(name = "approved_by_admin_id", length = 36)
@@ -74,6 +62,133 @@ public class Event {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    public Event() {
+    }
+
+    public Event(String id, Trek trek, OrganizerDetails organizer, String title, String description, LocalDate eventDate, BigDecimal price, Integer capacityTotal, Integer capacityBooked, Integer version, String status, String approvedByAdminId, LocalDateTime createdAt) {
+        this.id = id;
+        this.trek = trek;
+        this.organizer = organizer;
+        this.title = title;
+        this.description = description;
+        this.eventDate = eventDate;
+        this.price = price;
+        this.capacityTotal = capacityTotal;
+        this.capacityBooked = capacityBooked != null ? capacityBooked : 0;
+        this.version = version != null ? version : 0;
+        this.status = status != null ? status : "PENDING_APPROVAL";
+        this.approvedByAdminId = approvedByAdminId;
+        this.createdAt = createdAt;
+    }
+
+    public static EventBuilder builder() {
+        return new EventBuilder();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Trek getTrek() {
+        return trek;
+    }
+
+    public void setTrek(Trek trek) {
+        this.trek = trek;
+    }
+
+    public OrganizerDetails getOrganizer() {
+        return organizer;
+    }
+
+    public void setOrganizer(OrganizerDetails organizer) {
+        this.organizer = organizer;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public LocalDate getEventDate() {
+        return eventDate;
+    }
+
+    public void setEventDate(LocalDate eventDate) {
+        this.eventDate = eventDate;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
+    }
+
+    public void setPrice(BigDecimal price) {
+        this.price = price;
+    }
+
+    public Integer getCapacityTotal() {
+        return capacityTotal;
+    }
+
+    public void setCapacityTotal(Integer capacityTotal) {
+        this.capacityTotal = capacityTotal;
+    }
+
+    public Integer getCapacityBooked() {
+        return capacityBooked;
+    }
+
+    public void setCapacityBooked(Integer capacityBooked) {
+        this.capacityBooked = capacityBooked;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getApprovedByAdminId() {
+        return approvedByAdminId;
+    }
+
+    public void setApprovedByAdminId(String approvedByAdminId) {
+        this.approvedByAdminId = approvedByAdminId;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
 
     @PrePersist
     public void prePersist() {
@@ -87,10 +202,95 @@ public class Event {
             this.version = 0;
         }
         if (this.status == null) {
-            this.status = "PENDING_APPROVAL";
+            this.status = "APPROVED";
         }
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
+        }
+    }
+
+    public static class EventBuilder {
+        private String id;
+        private Trek trek;
+        private OrganizerDetails organizer;
+        private String title;
+        private String description;
+        private LocalDate eventDate;
+        private BigDecimal price;
+        private Integer capacityTotal;
+        private Integer capacityBooked = 0;
+        private Integer version = 0;
+        private String status = "APPROVED";
+        private String approvedByAdminId;
+        private LocalDateTime createdAt;
+
+        public EventBuilder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public EventBuilder trek(Trek trek) {
+            this.trek = trek;
+            return this;
+        }
+
+        public EventBuilder organizer(OrganizerDetails organizer) {
+            this.organizer = organizer;
+            return this;
+        }
+
+        public EventBuilder title(String title) {
+            this.title = title;
+            return this;
+        }
+
+        public EventBuilder description(String description) {
+            this.description = description;
+            return this;
+        }
+
+        public EventBuilder eventDate(LocalDate eventDate) {
+            this.eventDate = eventDate;
+            return this;
+        }
+
+        public EventBuilder price(BigDecimal price) {
+            this.price = price;
+            return this;
+        }
+
+        public EventBuilder capacityTotal(Integer capacityTotal) {
+            this.capacityTotal = capacityTotal;
+            return this;
+        }
+
+        public EventBuilder capacityBooked(Integer capacityBooked) {
+            this.capacityBooked = capacityBooked;
+            return this;
+        }
+
+        public EventBuilder version(Integer version) {
+            this.version = version;
+            return this;
+        }
+
+        public EventBuilder status(String status) {
+            this.status = status;
+            return this;
+        }
+
+        public EventBuilder approvedByAdminId(String approvedByAdminId) {
+            this.approvedByAdminId = approvedByAdminId;
+            return this;
+        }
+
+        public EventBuilder createdAt(LocalDateTime createdAt) {
+            this.createdAt = createdAt;
+            return this;
+        }
+
+        public Event build() {
+            return new Event(id, trek, organizer, title, description, eventDate, price, capacityTotal, capacityBooked, version, status, approvedByAdminId, createdAt);
         }
     }
 }

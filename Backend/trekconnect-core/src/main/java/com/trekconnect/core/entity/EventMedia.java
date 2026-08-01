@@ -1,23 +1,14 @@
 package com.trekconnect.core.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
  * Entity representing Event Media Gallery Assets stored in main_db.
- * 
- * WHY THIS ENTITY WAS CREATED:
- * Allows organizers to upload photos and videos of past trek batches to showcase on event detail pages.
  */
 @Entity
 @Table(name = "event_media")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class EventMedia {
 
     @Id
@@ -31,22 +22,114 @@ public class EventMedia {
     @Column(name = "media_url", nullable = false, length = 500)
     private String mediaUrl;
 
-    /**
-     * Media type: 'IMAGE' or 'VIDEO'.
-     */
     @Column(name = "media_type", nullable = false, length = 10)
     private String mediaType;
 
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private LocalDateTime uploadedAt;
 
+    public EventMedia() {
+    }
+
+    public EventMedia(String id, Event event, String mediaUrl, String mediaType, LocalDateTime uploadedAt) {
+        this.id = id;
+        this.event = event;
+        this.mediaUrl = mediaUrl;
+        this.mediaType = mediaType != null ? mediaType : "IMAGE";
+        this.uploadedAt = uploadedAt;
+    }
+
+    public static EventMediaBuilder builder() {
+        return new EventMediaBuilder();
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public Event getEvent() {
+        return event;
+    }
+
+    public void setEvent(Event event) {
+        this.event = event;
+    }
+
+    public String getMediaUrl() {
+        return mediaUrl;
+    }
+
+    public void setMediaUrl(String mediaUrl) {
+        this.mediaUrl = mediaUrl;
+    }
+
+    public String getMediaType() {
+        return mediaType;
+    }
+
+    public void setMediaType(String mediaType) {
+        this.mediaType = mediaType;
+    }
+
+    public LocalDateTime getUploadedAt() {
+        return uploadedAt;
+    }
+
+    public void setUploadedAt(LocalDateTime uploadedAt) {
+        this.uploadedAt = uploadedAt;
+    }
+
     @PrePersist
     public void prePersist() {
         if (this.id == null) {
             this.id = UUID.randomUUID().toString();
         }
+        if (this.mediaType == null) {
+            this.mediaType = "IMAGE";
+        }
         if (this.uploadedAt == null) {
             this.uploadedAt = LocalDateTime.now();
+        }
+    }
+
+    public static class EventMediaBuilder {
+        private String id;
+        private Event event;
+        private String mediaUrl;
+        private String mediaType = "IMAGE";
+        private LocalDateTime uploadedAt;
+
+        public EventMediaBuilder id(String id) {
+            this.id = id;
+            return this;
+        }
+
+        public EventMediaBuilder event(Event event) {
+            this.event = event;
+            return this;
+        }
+
+        public EventMediaBuilder mediaUrl(String mediaUrl) {
+            this.mediaUrl = mediaUrl;
+            return this;
+        }
+
+        public EventMediaBuilder mediaType(String mediaType) {
+            this.mediaType = mediaType;
+            return this;
+        }
+
+        public EventMediaBuilder uploadedAt(LocalDateTime uploadedAt) {
+            this.uploadedAt = uploadedAt;
+            return this;
+        }
+
+        public EventMedia build() {
+            return new EventMedia(id, event, mediaUrl, mediaType, uploadedAt);
         }
     }
 }

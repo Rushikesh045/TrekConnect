@@ -1,0 +1,220 @@
+<!-- ORGANIZER ROLE TREK & BATCH MANAGEMENT DASHBOARD -->
+<div class="organizer-dashboard-wrapper">
+  
+  <!-- Navigation Header -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/organizer/dashboard">
+        <i class="ri-compass-3-fill logo-icon"></i>
+        <div class="brand-text">
+          <span class="brand-title">TrekConnect</span>
+          <span class="organizer-badge">ORGANIZER PORTAL</span>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <span class="business-pill">
+          <i class="ri-building-line"></i> {{ organizationName }}
+        </span>
+        <button class="create-event-top-btn" (click)="openCreateModal()">
+          <i class="ri-add-line"></i> Launch New Batch
+        </button>
+        <button class="logout-btn" (click)="onLogout()">
+          <i class="ri-logout-box-r-line"></i> Sign Out
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="dashboard-container">
+    
+    <!-- Hero Header -->
+    <header class="dashboard-header">
+      <div>
+        <h1 class="header-title">Event & Batch Management</h1>
+        <p class="header-subtitle">Schedule new trek batches, manage slot capacities, update pricing, and showcase trek media galleries.</p>
+      </div>
+    </header>
+
+    <!-- Metrics Summary Overview Bar -->
+    <div class="stats-overview-grid">
+      <div class="stat-card">
+        <div class="stat-icon events-icon"><i class="ri-calendar-event-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Published Events</span>
+          <span class="stat-value">{{ events.length }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon seats-icon"><i class="ri-user-star-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Total Seats Booked</span>
+          <span class="stat-value">{{ totalSeatsBooked }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card highlight">
+        <div class="stat-icon revenue-icon"><i class="ri-wallet-3-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Estimated Revenue</span>
+          <span class="stat-value currency">₹{{ totalRevenueEarned | number:'1.0-0' }}</span>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-icon rating-icon"><i class="ri-star-smile-line"></i></div>
+        <div class="stat-info">
+          <span class="stat-label">Organizer Rating</span>
+          <span class="stat-value">4.9 ★</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scheduled Batches Section -->
+    <section class="management-section">
+      <div class="section-header">
+        <h2>My Scheduled Batches</h2>
+        <button class="primary-btn" (click)="openCreateModal()">
+          <i class="ri-add-line"></i> Schedule New Event
+        </button>
+      </div>
+
+      <div class="events-grid" *ngIf="events.length > 0">
+        <div class="event-card" *ngFor="let event of events">
+          
+          <div class="card-header">
+            <span class="difficulty-badge" [class.easy]="event.difficulty === 'EASY'" [class.moderate]="event.difficulty === 'MODERATE'" [class.hard]="event.difficulty === 'HARD'">
+              {{ event.difficulty || 'MODERATE' }}
+            </span>
+            <span class="version-tag" title="JPA Optimistic Concurrency Locking Version">
+              v{{ event.version }}
+            </span>
+          </div>
+
+          <h3 class="event-title">{{ event.title }}</h3>
+          <p class="event-desc">{{ event.description }}</p>
+
+          <div class="event-details-list">
+            <div class="detail-item">
+              <i class="ri-calendar-line"></i>
+              <span>Date: <strong>{{ event.eventDate }}</strong></span>
+            </div>
+
+            <div class="detail-item">
+              <i class="ri-price-tag-3-line"></i>
+              <span>Price: <strong>₹{{ event.price }} / slot</strong></span>
+            </div>
+
+            <div class="detail-item">
+              <i class="ri-group-line"></i>
+              <span>Slots: <strong>{{ event.capacityBooked }} / {{ event.capacityTotal }} Booked</strong> ({{ event.availableSlots }} left)</span>
+            </div>
+          </div>
+
+          <!-- Capacity Bar -->
+          <div class="capacity-progress-bar">
+            <div class="progress-fill" [style.width.%]="(event.capacityBooked / event.capacityTotal) * 100"></div>
+          </div>
+
+          <!-- Actions Footer -->
+          <div class="card-actions-footer">
+            <button class="secondary-btn" (click)="openMediaModal(event)">
+              <i class="ri-image-add-line"></i> Media Gallery ({{ event.mediaGallery?.length || 0 }})
+            </button>
+            <span class="status-pill verified">
+              <i class="ri-checkbox-circle-fill"></i> {{ event.status }}
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="empty-table-card" *ngIf="events.length === 0">
+        <i class="ri-landscape-line empty-icon"></i>
+        <h3>No Events Scheduled</h3>
+        <p>Click "Schedule New Event" to launch your first trek batch and start accepting bookings.</p>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- Create Event Modal -->
+  <div class="modal-backdrop" *ngIf="isCreateModalOpen" (click)="closeCreateModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeCreateModal()"><i class="ri-close-line"></i></button>
+
+      <div class="modal-header">
+        <h3>Launch Scheduled Trek Batch</h3>
+        <p>Configure pricing, slot capacity, and dates for trekkers to join.</p>
+      </div>
+
+      <div class="modal-body">
+        
+        <div class="form-group">
+          <label>Select Trek Location <span class="required">*</span></label>
+          <select [(ngModel)]="newEvent.trekId" class="form-control">
+            <option *ngFor="let t of treks" [value]="t.name">{{ t.name }} ({{ t.region }})</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Event Batch Title <span class="required">*</span></label>
+          <input type="text" [(ngModel)]="newEvent.title" class="form-control" placeholder="e.g. Monsoon Weekend Expedition to Rajmachi">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Start Date <span class="required">*</span></label>
+            <input type="date" [(ngModel)]="newEvent.eventDate" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label>Price Per Slot (₹) <span class="required">*</span></label>
+            <input type="number" [(ngModel)]="newEvent.price" class="form-control" placeholder="1850">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Total Capacity / Seats <span class="required">*</span></label>
+          <input type="number" [(ngModel)]="newEvent.capacityTotal" class="form-control" placeholder="30">
+        </div>
+
+        <div class="form-group">
+          <label>Itinerary Description</label>
+          <textarea [(ngModel)]="newEvent.description" rows="3" class="form-control" placeholder="Describe the camping highlights, pickup points, meal arrangements..."></textarea>
+        </div>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeCreateModal()">Cancel</button>
+        <button class="confirm-publish-btn" (click)="submitCreateEvent()">Publish Event Batch</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Media Gallery Upload Modal -->
+  <div class="modal-backdrop" *ngIf="isMediaModalOpen" (click)="closeMediaModal()">
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeMediaModal()"><i class="ri-close-line"></i></button>
+
+      <div class="modal-header">
+        <h3>Add Media Gallery Photo</h3>
+        <p>Event: <strong>{{ selectedEventForMedia?.title }}</strong></p>
+      </div>
+
+      <div class="modal-body">
+        <label>Photo Image URL <span class="required">*</span></label>
+        <input type="url" [(ngModel)]="newMediaUrl" class="form-control" placeholder="https://images.unsplash.com/photo-1544735716-392fe2489ffa">
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeMediaModal()">Cancel</button>
+        <button class="confirm-publish-btn" (click)="submitAddMedia()">Upload to Gallery</button>
+      </div>
+    </div>
+  </div>
+
+</div>
