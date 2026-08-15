@@ -23,6 +23,11 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'user/bookings',
+    loadComponent: () => import('./features/user/pages/bookings/user-bookings.component').then(m => m.UserBookingsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: 'organizer/apply',
     loadComponent: () => import('./features/user/pages/organizer-apply/organizer-apply.component').then(m => m.OrganizerApplyComponent),
     canActivate: [authGuard]

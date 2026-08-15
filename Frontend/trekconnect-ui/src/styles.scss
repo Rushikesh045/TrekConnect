@@ -1,6 +1,8 @@
 /* TrekConnect Global CSS Design System */
 :root {
-  /* Primary Color System */
+  /* Primary Emerald Adventure Accent */
+  --primary: #14CFA0;
+  --primary-hover: #10B981;
   --primary-50: #ecfdf5;
   --primary-100: #d1fae5;
   --primary-400: #34d399;
@@ -13,24 +15,30 @@
   --accent-amber: #f59e0b;
   --accent-rose: #f43f5e;
 
-  /* Dark Theme Surfaces */
-  --bg-dark: #090d16;
-  --bg-surface-1: #111827;
-  --bg-surface-2: #1e293b;
-  --bg-surface-card: rgba(30, 41, 59, 0.75);
+  /* Dark Multi-Layered Surfaces */
+  --bg-dark: #0B1220;
+  --bg-surface-1: #101A2E;
+  --bg-surface-2: #182235;
+  --bg-surface-card: rgba(24, 34, 53, 0.75);
 
   /* Borders & Dividers */
   --border-subtle: rgba(255, 255, 255, 0.08);
-  --border-glow: rgba(16, 185, 129, 0.4);
+  --border-glow: rgba(20, 207, 160, 0.4);
 
   /* Typography Colors */
   --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
+  --text-secondary: #9CA3AF;
   --text-muted: #64748b;
+
+  /* Status Colors */
+  --rating-gold: #f59e0b;
+  --difficulty-easy: #10b981;
+  --difficulty-moderate: #f97316;
+  --difficulty-hard: #ef4444;
 
   /* Shadows & Glows */
   --shadow-card: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  --glow-emerald: 0 0 25px rgba(16, 185, 129, 0.25);
+  --glow-emerald: 0 0 25px rgba(20, 207, 160, 0.25);
 
   /* Font Families */
   --font-heading: 'Plus Jakarta Sans', sans-serif;
@@ -64,7 +72,7 @@ body {
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--primary-600);
+  background: var(--primary-hover);
 }
 
 /* Animations */

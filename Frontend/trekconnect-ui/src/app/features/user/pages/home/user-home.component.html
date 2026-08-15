@@ -289,4 +289,83 @@
     </div>
   </div>
 
+  <!-- 6. HIGH-CONCURRENCY SEAT CHECKOUT & 10-MIN LOCK MODAL -->
+  <div class="modal-backdrop" *ngIf="isCheckoutModalOpen && selectedTrek" (click)="closeCheckoutModal()">
+    <div class="modal-card checkout-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeCheckoutModal()"><i class="ri-close-line"></i></button>
+
+      <div class="modal-header checkout-header">
+        <h3>Reserve Seats & Lock Batch Slot</h3>
+        <p>Selected Event: <strong>{{ selectedTrek.title }}</strong></p>
+      </div>
+
+      <div class="modal-body" *ngIf="!activeBooking">
+        
+        <div class="seat-counter-box">
+          <label>Select Seats / Slots to Reserve</label>
+          <div class="counter-controls">
+            <button class="counter-btn" (click)="decrementSeats()"><i class="ri-subtract-line"></i></button>
+            <span class="seats-value">{{ selectedSeatsCount }}</span>
+            <button class="counter-btn" (click)="incrementSeats()"><i class="ri-add-line"></i></button>
+          </div>
+          <span class="available-hint"><i class="ri-fire-line"></i> {{ selectedTrek.availableSlots }} seats remaining in this batch</span>
+        </div>
+
+        <div class="checkout-summary-box">
+          <div class="summary-line">
+            <span>Price Per Seat</span>
+            <span>₹{{ selectedTrek.pricePerSlot }}</span>
+          </div>
+          <div class="summary-line">
+            <span>Quantity</span>
+            <span>{{ selectedSeatsCount }} Seat(s)</span>
+          </div>
+          <div class="summary-line total">
+            <span>Total Payable Amount</span>
+            <span class="total-price">₹{{ (selectedSeatsCount * selectedTrek.pricePerSlot) | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="idempotency-badge-box">
+          <i class="ri-shield-keyhole-line"></i>
+          <div>
+            <span class="badge-title">Idempotency Protection Active</span>
+            <span class="badge-sub">Unique Key: <code>{{ idempotencyKey }}</code></span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Active Reservation Lock Confirmation Screen -->
+      <div class="modal-body lock-active-body" *ngIf="activeBooking">
+        <div class="lock-timer-banner">
+          <i class="ri-time-line timer-icon"></i>
+          <div>
+            <h4>10-Minute Seat Reservation Lock Active!</h4>
+            <p>Your {{ activeBooking.numSeats }} seat(s) are held in database lock until {{ activeBooking.expiresAt | date:'shortTime' }}.</p>
+          </div>
+        </div>
+
+        <div class="booking-receipt-card">
+          <div class="receipt-row"><span>Booking Reference:</span> <code>{{ activeBooking.id }}</code></div>
+          <div class="receipt-row"><span>Status:</span> <strong class="pending-tag">{{ activeBooking.status }}</strong></div>
+          <div class="receipt-row"><span>Total Amount Locked:</span> <strong>₹{{ activeBooking.totalAmount }}</strong></div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeCheckoutModal()" *ngIf="!activeBooking">Cancel</button>
+        <button class="confirm-publish-btn" (click)="confirmSeatReservation()" *ngIf="!activeBooking">
+          <i class="ri-lock-2-line"></i> Lock Seats & Continue
+        </button>
+
+        <button class="confirm-publish-btn" (click)="goToMyBookings()" *ngIf="activeBooking">
+          <i class="ri-ticket-line"></i> View My Bookings Pass
+        </button>
+      </div>
+
+    </div>
+  </div>
+
 </div>
+

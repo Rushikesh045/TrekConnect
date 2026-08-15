@@ -1,0 +1,94 @@
+<!-- USER MY BOOKINGS PAGE -->
+<div class="user-bookings-wrapper">
+  
+  <!-- Navigation Header -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/user/home">
+        <i class="ri-compass-3-fill logo-icon"></i>
+        <span class="brand-title">TrekConnect</span>
+      </div>
+
+      <div class="nav-links">
+        <a routerLink="/user/home" class="nav-item"><i class="ri-compass-line"></i> Explore Treks</a>
+        <a routerLink="/user/bookings" class="nav-item active"><i class="ri-ticket-2-line"></i> My Bookings</a>
+        <a routerLink="/user/profile" class="nav-item"><i class="ri-user-3-line"></i> Profile</a>
+        <button class="logout-btn" (click)="onLogout()"><i class="ri-logout-box-r-line"></i> Sign Out</button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="bookings-container">
+    
+    <header class="page-header">
+      <div>
+        <h1 class="header-title">My Trek Reservations</h1>
+        <p class="header-subtitle">View active bookings, seat lock status, digital pass tickets, and cancellation options.</p>
+      </div>
+    </header>
+
+    <div class="bookings-grid" *ngIf="bookings.length > 0">
+      <div class="booking-card" *ngFor="let b of bookings">
+        
+        <div class="card-top">
+          <div class="trek-title-box">
+            <span class="region-badge"><i class="ri-map-pin-line"></i> {{ b.region || 'Maharashtra' }}</span>
+            <h3 class="event-title">{{ b.eventTitle }}</h3>
+            <p class="trek-name">{{ b.trekName }}</p>
+          </div>
+
+          <span class="status-badge" [class.confirmed]="b.status === 'CONFIRMED'" [class.pending]="b.status === 'PENDING_PAYMENT'" [class.cancelled]="b.status === 'CANCELLED'">
+            {{ b.status }}
+          </span>
+        </div>
+
+        <div class="card-details-row">
+          <div class="detail-col">
+            <span class="label">Date of Departure</span>
+            <span class="value"><i class="ri-calendar-event-line"></i> {{ b.eventDate || 'Upcoming Weekend' }}</span>
+          </div>
+
+          <div class="detail-col">
+            <span class="label">Reserved Seats</span>
+            <span class="value"><i class="ri-user-star-line"></i> {{ b.numSeats }} Slot(s)</span>
+          </div>
+
+          <div class="detail-col">
+            <span class="label">Total Paid / Due</span>
+            <span class="value currency">₹{{ b.totalAmount }}</span>
+          </div>
+
+          <div class="detail-col">
+            <span class="label">Booking Ref / Idempotency</span>
+            <span class="value code"><code>{{ b.idempotencyKey }}</code></span>
+          </div>
+        </div>
+
+        <!-- Digital Ticket Pass Footer -->
+        <div class="card-footer">
+          <div class="ticket-pass-info">
+            <i class="ri-qr-code-line qr-icon"></i>
+            <div>
+              <span class="pass-id">Pass ID: {{ b.id }}</span>
+              <span class="pass-sub">Show this QR pass to your Trek Organizer at departure</span>
+            </div>
+          </div>
+
+          <button *ngIf="b.status !== 'CANCELLED'" class="cancel-btn" (click)="cancelBooking(b)">
+            <i class="ri-close-circle-line"></i> Cancel Reservation
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="empty-bookings-card" *ngIf="bookings.length === 0">
+      <i class="ri-ticket-line empty-icon"></i>
+      <h3>No Bookings Found</h3>
+      <p>Explore upcoming trek batches and reserve your seats with high-concurrency 10-minute lock protection.</p>
+      <button class="explore-btn" routerLink="/user/home">Browse Treks</button>
+    </div>
+
+  </main>
+
+</div>

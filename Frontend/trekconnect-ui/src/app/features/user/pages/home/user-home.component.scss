@@ -668,13 +668,14 @@
   }
 }
 
-/* 5. MODAL OVERLAY STYLING */
+/* 5. MODAL OVERLAY & CARD STYLING */
 .modal-backdrop {
   position: fixed;
   inset: 0;
   z-index: 300;
-  background: rgba(15, 23, 42, 0.8);
+  background: rgba(11, 18, 32, 0.82);
   backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -685,8 +686,8 @@
     width: 100%;
     max-width: 680px;
     max-height: 90vh;
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: #111827;
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 1.5rem;
     overflow-y: auto;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
@@ -694,17 +695,23 @@
 
   .close-modal-btn {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
-    z-index: 20;
+    top: 1.25rem;
+    right: 1.25rem;
+    z-index: 30;
     width: 36px;
     height: 36px;
     border-radius: 50%;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(17, 24, 39, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #fff;
+    color: #ffffff;
     font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover { background: rgba(239, 68, 68, 0.3); color: #f87171; }
   }
 }
 
@@ -713,7 +720,7 @@
   height: 220px;
 
   .modal-banner-img { width: 100%; height: 100%; object-fit: cover; }
-  .modal-header-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, #0f172a 100%); }
+  .modal-header-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, transparent 0%, #111827 100%); }
 
   .modal-header-text {
     position: absolute;
@@ -801,19 +808,186 @@
   }
 
   .book-now-btn {
-    padding: 0.85rem 1.75rem;
+    padding: 0.75rem 1.5rem;
     background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     border: none;
     border-radius: 0.75rem;
-    color: #fff;
-    font-weight: 800;
+    color: #ffffff;
     font-size: 0.95rem;
+    font-weight: 800;
     display: flex;
     align-items: center;
     gap: 0.5rem;
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
 
-    &:hover { background: #059669; }
+    &:hover { background: #10b981; }
+  }
+}
+
+/* 6. PHASE 5 SEAT RESERVATION CHECKOUT MODAL STYLING */
+.modal-card.checkout-card {
+  max-width: 560px;
+
+  .checkout-header {
+    height: auto;
+    padding: 1.75rem 1.5rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    h3 { font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 0.35rem; }
+    p { font-size: 0.9rem; color: #94a3b8; margin: 0; strong { color: #14CFA0; } }
+  }
+
+  .seat-counter-box {
+    background: rgba(30, 41, 59, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+
+    label { font-size: 0.82rem; font-weight: 700; color: #9CA3AF; text-transform: uppercase; display: block; margin-bottom: 0.75rem; }
+
+    .counter-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+
+      .counter-btn {
+        width: 42px;
+        height: 42px;
+        border-radius: 0.65rem;
+        background: rgba(20, 207, 160, 0.15);
+        border: 1px solid rgba(20, 207, 160, 0.3);
+        color: #14CFA0;
+        font-size: 1.2rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+
+        &:hover { background: #14CFA0; color: #000000; }
+      }
+
+      .seats-value { font-size: 1.5rem; font-weight: 800; color: #ffffff; min-width: 32px; text-align: center; }
+    }
+
+    .available-hint { font-size: 0.82rem; color: #f59e0b; display: flex; align-items: center; gap: 0.35rem; font-weight: 600; }
+  }
+
+  .checkout-summary-box {
+    background: rgba(17, 24, 39, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 1rem;
+    padding: 1.25rem;
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+
+    .summary-line {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.88rem;
+      color: #9CA3AF;
+
+      &.total {
+        padding-top: 0.65rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        font-weight: 800;
+        color: #ffffff;
+        .total-price { font-size: 1.35rem; color: #14CFA0; }
+      }
+    }
+  }
+
+  .idempotency-badge-box {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: rgba(6, 182, 212, 0.1);
+    border: 1px solid rgba(6, 182, 212, 0.25);
+    border-radius: 0.75rem;
+    padding: 0.85rem 1rem;
+    font-size: 0.82rem;
+
+    i { font-size: 1.5rem; color: #06b6d4; }
+    .badge-title { font-weight: 700; color: #06b6d4; display: block; }
+    .badge-sub { color: #9CA3AF; code { background: rgba(255, 255, 255, 0.1); padding: 0.1rem 0.35rem; border-radius: 4px; font-size: 0.78rem; } }
+  }
+
+  .lock-active-body {
+    .lock-timer-banner {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: rgba(245, 158, 11, 0.12);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      margin-bottom: 1.25rem;
+
+      .timer-icon { font-size: 2rem; color: #f59e0b; }
+      h4 { font-size: 1rem; font-weight: 800; color: #f59e0b; margin-bottom: 0.2rem; }
+      p { font-size: 0.85rem; color: #9CA3AF; margin: 0; }
+    }
+
+    .booking-receipt-card {
+      background: rgba(17, 24, 39, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      font-size: 0.88rem;
+
+      .receipt-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #9CA3AF;
+
+        code { background: rgba(255, 255, 255, 0.1); padding: 0.15rem 0.4rem; border-radius: 4px; }
+        .pending-tag { color: #f59e0b; }
+      }
+    }
+  }
+
+  .modal-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+
+    .cancel-btn {
+      padding: 0.65rem 1.25rem;
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 0.6rem;
+      color: #9CA3AF;
+      font-weight: 600;
+      cursor: pointer;
+
+      &:hover { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
+    }
+
+    .confirm-publish-btn {
+      padding: 0.65rem 1.35rem;
+      background: var(--primary);
+      border: none;
+      border-radius: 0.6rem;
+      color: #000000;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+
+      &:hover { background: var(--primary-hover); }
+    }
   }
 }
