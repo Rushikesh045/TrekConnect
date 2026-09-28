@@ -10,6 +10,9 @@ public class OrganizerApplicationResponse {
     private String id;
     private String userId;
     private String organizationName;
+    private String contactPhone;
+    private String cityLocation;
+    private String licenseNumber;
     private String verificationStatus;
     private String verificationDocsUrl;
     private String rejectionReason;
@@ -18,10 +21,13 @@ public class OrganizerApplicationResponse {
     public OrganizerApplicationResponse() {
     }
 
-    public OrganizerApplicationResponse(String id, String userId, String organizationName, String verificationStatus, String verificationDocsUrl, String rejectionReason, LocalDateTime verifiedAt) {
+    public OrganizerApplicationResponse(String id, String userId, String organizationName, String contactPhone, String cityLocation, String licenseNumber, String verificationStatus, String verificationDocsUrl, String rejectionReason, LocalDateTime verifiedAt) {
         this.id = id;
         this.userId = userId;
         this.organizationName = organizationName;
+        this.contactPhone = contactPhone;
+        this.cityLocation = cityLocation;
+        this.licenseNumber = licenseNumber;
         this.verificationStatus = verificationStatus;
         this.verificationDocsUrl = verificationDocsUrl;
         this.rejectionReason = rejectionReason;
@@ -54,6 +60,30 @@ public class OrganizerApplicationResponse {
 
     public void setOrganizationName(String organizationName) {
         this.organizationName = organizationName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getCityLocation() {
+        return cityLocation;
+    }
+
+    public void setCityLocation(String cityLocation) {
+        this.cityLocation = cityLocation;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
     }
 
     public String getVerificationStatus() {
@@ -92,6 +122,9 @@ public class OrganizerApplicationResponse {
         private String id;
         private String userId;
         private String organizationName;
+        private String contactPhone;
+        private String cityLocation;
+        private String licenseNumber;
         private String verificationStatus;
         private String verificationDocsUrl;
         private String rejectionReason;
@@ -109,6 +142,21 @@ public class OrganizerApplicationResponse {
 
         public OrganizerApplicationResponseBuilder organizationName(String organizationName) {
             this.organizationName = organizationName;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder contactPhone(String contactPhone) {
+            this.contactPhone = contactPhone;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder cityLocation(String cityLocation) {
+            this.cityLocation = cityLocation;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder licenseNumber(String licenseNumber) {
+            this.licenseNumber = licenseNumber;
             return this;
         }
 
@@ -133,7 +181,7 @@ public class OrganizerApplicationResponse {
         }
 
         public OrganizerApplicationResponse build() {
-            return new OrganizerApplicationResponse(id, userId, organizationName, verificationStatus, verificationDocsUrl, rejectionReason, verifiedAt);
+            return new OrganizerApplicationResponse(id, userId, organizationName, contactPhone, cityLocation, licenseNumber, verificationStatus, verificationDocsUrl, rejectionReason, verifiedAt);
         }
     }
 }

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 600" width="100%" height="100%">
+  <rect width="800" height="600" fill="#0f172a"/>
+  <rect x="40" y="40" width="720" height="520" rx="16" fill="#1e293b" stroke="#10b981" stroke-width="3"/>
+  <circle cx="400" cy="150" r="45" fill="#10b981" opacity="0.2"/>
+  <path d="M400 120 L420 150 L400 180 L380 150 Z" fill="#10b981"/>
+  <text x="400" y="240" font-family="'Plus Jakarta Sans', sans-serif" font-size="28" font-weight="800" fill="#ffffff" text-anchor="middle">GOVERNMENT VERIFIED TREK ORGANIZER</text>
+  <text x="400" y="280" font-family="sans-serif" font-size="18" fill="#94a3b8" text-anchor="middle">Sahyadri Wanderers Expeditions &amp; Adventures</text>
+  <text x="400" y="320" font-family="monospace" font-size="16" fill="#34d399" text-anchor="middle">GSTIN: 27ABCDE1234F1Z5 • REG-2024-889421</text>
+  <rect x="250" y="380" width="300" height="120" rx="8" fill="#0f172a" stroke="rgba(255,255,255,0.1)"/>
+  <text x="400" y="430" font-family="sans-serif" font-size="16" font-weight="700" fill="#38bdf8" text-anchor="middle">OFFICIAL KYC VERIFICATION PASSED</text>
+  <text x="400" y="465" font-family="sans-serif" font-size="14" fill="#64748b" text-anchor="middle">Issued by TrekConnect Security Compliance Division</text>
+</svg>

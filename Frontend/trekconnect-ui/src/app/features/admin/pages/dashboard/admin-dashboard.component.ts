@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AdminService, AdminDashboardStatsResponse, DisputeResponse } from '../../../../core/services/admin.service';
+import { AdminService, AdminDashboardStatsResponse, DisputeResponse, RegisteredUserResponse } from '../../../../core/services/admin.service';
 import { OrganizerApplicationResponse } from '../../../../core/services/organizer.service';
 import { TokenService } from '../../../../core/services/token.service';
 import { NotificationService } from '../../../../core/services/notification.service';
@@ -25,7 +25,7 @@ export class AdminDashboardComponent implements OnInit {
 
   isLoading = true;
   adminEmail = '';
-  selectedTab: 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'DISPUTES' = 'PENDING';
+  selectedTab: 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'USERS' | 'DISPUTES' = 'PENDING';
 
   stats: AdminDashboardStatsResponse = {
     totalUsers: 150,
@@ -36,55 +36,21 @@ export class AdminDashboardComponent implements OnInit {
 
   applications: OrganizerApplicationResponse[] = [];
   disputes: DisputeResponse[] = [];
+  registeredUsers: RegisteredUserResponse[] = [];
 
   // Rejection modal state
   selectedApplicationForReject: OrganizerApplicationResponse | null = null;
   rejectionReason = '';
   isRejectModalOpen = false;
 
-  // Mock initial data if backend is empty
-  mockApplications: OrganizerApplicationResponse[] = [
-    {
-      id: 'app-501',
-      userId: 'usr-torna-101',
-      organizationName: 'Sahyadri Wanderers Expeditions',
-      verificationStatus: 'PENDING',
-      verificationDocsUrl: 'https://example.com/docs/sahyadri-wanderers-registration.pdf'
-    },
-    {
-      id: 'app-502',
-      userId: 'usr-rajmachi-102',
-      organizationName: 'Pinnacle Outdoor Club Pune',
-      verificationStatus: 'PENDING',
-      verificationDocsUrl: 'https://example.com/docs/pinnacle-gstin.pdf'
-    },
-    {
-      id: 'app-503',
-      userId: 'usr-kalsubai-103',
-      organizationName: 'Everest Treks Maharashtra',
-      verificationStatus: 'VERIFIED',
-      verificationDocsUrl: 'https://example.com/docs/everest-treks-verified.pdf'
-    }
-  ];
-
-  mockDisputes: DisputeResponse[] = [
-    {
-      id: 'disp-801',
-      paymentId: 'pay_L9kX01aB2c3D4e',
-      requestedByUserId: 'usr-trekker-44',
-      requestedByUserName: 'Rahul Sharma',
-      reason: 'Heavy rainfall alert issued by IMD; event cancelled by organizer without refund.',
-      status: 'PENDING'
-    },
-    {
-      id: 'disp-802',
-      paymentId: 'pay_M8jY02bC3d4E5f',
-      requestedByUserId: 'usr-trekker-89',
-      requestedByUserName: 'Ananya Deshmukh',
-      reason: 'Medical emergency before departure; submitted hospital certificate.',
-      status: 'APPROVED'
-    }
-  ];
+  // Create Admin User modal state
+  isCreateAdminModalOpen = false;
+  isCreatingAdmin = false;
+  newAdminName = '';
+  newAdminEmail = '';
+  newAdminRole = 'ADMIN';
+  newAdminPassword = '';
+  createdAdminResult: any = null;
 
   ngOnInit(): void {
     const user = this.tokenService.getUser();
@@ -93,45 +59,99 @@ export class AdminDashboardComponent implements OnInit {
     this.loadStats();
     this.loadApplications();
     this.loadDisputes();
+    this.loadRegisteredUsers();
+  }
+
+  openCreateAdminModal(): void {
+    this.newAdminName = '';
+    this.newAdminEmail = '';
+    this.newAdminRole = 'ADMIN';
+    this.newAdminPassword = '';
+    this.createdAdminResult = null;
+    this.isCreateAdminModalOpen = true;
+  }
+
+  closeCreateAdminModal(): void {
+    this.isCreateAdminModalOpen = false;
+    this.createdAdminResult = null;
+  }
+
+  submitCreateAdmin(): void {
+    if (!this.newAdminName.trim() || !this.newAdminEmail.trim()) {
+      this.notificationService.showError('Name and Email are required.', 'Validation Error');
+      return;
+    }
+
+    this.isCreatingAdmin = true;
+    this.adminService.createAdminUser({
+      name: this.newAdminName.trim(),
+      email: this.newAdminEmail.trim(),
+      role: this.newAdminRole,
+      password: this.newAdminPassword.trim() || undefined
+    }).subscribe({
+      next: (res) => {
+        this.isCreatingAdmin = false;
+        this.createdAdminResult = res;
+        this.notificationService.showSuccess(`Account for ${res.email} created successfully!`, 'User Account Provisioned');
+        this.loadRegisteredUsers();
+        this.loadStats();
+      },
+      error: (err) => {
+        this.isCreatingAdmin = false;
+        const msg = err?.error?.message || 'Failed to create user account. Please check details.';
+        this.notificationService.showError(msg, 'Creation Failed');
+      }
+    });
   }
 
   loadStats(): void {
     this.adminService.getDashboardStats().subscribe({
       next: (res) => { this.stats = res; },
-      error: () => {}
+      error: (err) => console.error('Error loading admin stats', err)
     });
   }
 
   loadApplications(): void {
     this.isLoading = true;
-    this.adminService.getOrganizerApplications(this.selectedTab !== 'DISPUTES' ? this.selectedTab : undefined).subscribe({
+    this.adminService.getOrganizerApplications(this.selectedTab !== 'DISPUTES' && this.selectedTab !== 'USERS' ? this.selectedTab : undefined).subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.applications = (res && res.length > 0) ? res : this.filteredMockApplications;
+        this.applications = res || [];
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        this.applications = this.filteredMockApplications;
+        console.error('Error loading organizer applications', err);
+        this.applications = [];
       }
     });
   }
 
   loadDisputes(): void {
     this.adminService.getDisputes().subscribe({
-      next: (res) => { this.disputes = (res && res.length > 0) ? res : this.mockDisputes; },
-      error: () => { this.disputes = this.mockDisputes; }
+      next: (res) => { this.disputes = res || []; },
+      error: (err) => {
+        console.error('Error loading disputes', err);
+        this.disputes = [];
+      }
     });
   }
 
-  get filteredMockApplications(): OrganizerApplicationResponse[] {
-    if (this.selectedTab === 'ALL' || this.selectedTab === 'DISPUTES') return this.mockApplications;
-    return this.mockApplications.filter(a => a.verificationStatus === this.selectedTab);
+  loadRegisteredUsers(): void {
+    this.adminService.getAllRegisteredUsers().subscribe({
+      next: (res) => { this.registeredUsers = res || []; },
+      error: (err) => {
+        console.error('Error loading registered users', err);
+        this.registeredUsers = [];
+      }
+    });
   }
 
-  setTab(tab: 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'DISPUTES'): void {
+  setTab(tab: 'ALL' | 'PENDING' | 'VERIFIED' | 'REJECTED' | 'USERS' | 'DISPUTES'): void {
     this.selectedTab = tab;
     if (tab === 'DISPUTES') {
       this.loadDisputes();
+    } else if (tab === 'USERS') {
+      this.loadRegisteredUsers();
     } else {
       this.loadApplications();
     }
@@ -144,9 +164,9 @@ export class AdminDashboardComponent implements OnInit {
         this.notificationService.showSuccess(`Organization "${app.organizationName}" has been VERIFIED.`, 'Organizer Approved');
         this.loadStats();
       },
-      error: () => {
-        app.verificationStatus = 'VERIFIED';
-        this.notificationService.showSuccess(`Organization "${app.organizationName}" has been VERIFIED.`, 'Organizer Approved');
+      error: (err) => {
+        const msg = err?.error?.message || 'Failed to verify organizer. Please try again.';
+        this.notificationService.showError(msg, 'Verification Failed');
       }
     });
   }
@@ -180,11 +200,10 @@ export class AdminDashboardComponent implements OnInit {
         this.notificationService.showInfo(`Application for "${app.organizationName}" has been REJECTED.`, 'Rejected');
         this.loadStats();
       },
-      error: () => {
-        app.verificationStatus = 'REJECTED';
-        app.rejectionReason = this.rejectionReason;
+      error: (err) => {
+        const msg = err?.error?.message || 'Failed to reject organizer. Please try again.';
+        this.notificationService.showError(msg, 'Rejection Failed');
         this.closeRejectModal();
-        this.notificationService.showInfo(`Application for "${app.organizationName}" has been REJECTED.`, 'Rejected');
       }
     });
   }
@@ -193,11 +212,12 @@ export class AdminDashboardComponent implements OnInit {
     this.adminService.resolveDispute(dispute.id, resolution).subscribe({
       next: () => {
         dispute.status = resolution;
-        this.notificationService.showSuccess(`Dispute #${dispute.id} has been marked as ${resolution}.`, 'Dispute Resolved');
+        const action = resolution === 'APPROVED' ? 'approved for refund' : 'dismissed';
+        this.notificationService.showSuccess(`Dispute #${dispute.id.substring(0, 8)} has been ${action}.`, 'Dispute Resolved');
       },
-      error: () => {
-        dispute.status = resolution;
-        this.notificationService.showSuccess(`Dispute #${dispute.id} has been marked as ${resolution}.`, 'Dispute Resolved');
+      error: (err) => {
+        const msg = err?.error?.message || 'Failed to resolve dispute. Please try again.';
+        this.notificationService.showError(msg, 'Action Failed');
       }
     });
   }

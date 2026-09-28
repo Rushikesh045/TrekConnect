@@ -25,10 +25,10 @@
       </div>
 
       <div class="nav-actions">
-        <button class="nav-icon-btn" title="Saved Wishlist">
+        <button class="nav-icon-btn" title="Saved Wishlist" (click)="selectCategory('WISHLIST')" [class.active]="selectedCategory === 'WISHLIST'">
           <i class="ri-heart-3-line"></i>
         </button>
-        <button class="nav-icon-btn" title="My Bookings">
+        <button class="nav-icon-btn" title="My Bookings" routerLink="/user/bookings">
           <i class="ri-ticket-2-line"></i>
         </button>
         
@@ -49,9 +49,9 @@
               <p class="user-role-label">Trekker Explorer</p>
             </div>
             <div class="dropdown-divider"></div>
-            <a class="dropdown-item" (click)="toggleProfileDropdown()"><i class="ri-user-line"></i> My Profile</a>
-            <a class="dropdown-item" (click)="toggleProfileDropdown()"><i class="ri-ticket-line"></i> My Bookings</a>
-            <a class="dropdown-item" (click)="toggleProfileDropdown()"><i class="ri-heart-line"></i> Saved Wishlist</a>
+            <a class="dropdown-item" routerLink="/user/profile" (click)="toggleProfileDropdown()"><i class="ri-user-line"></i> My Profile</a>
+            <a class="dropdown-item" routerLink="/user/bookings" (click)="toggleProfileDropdown()"><i class="ri-ticket-line"></i> My Bookings</a>
+            <a class="dropdown-item" (click)="selectCategory('WISHLIST'); toggleProfileDropdown()"><i class="ri-heart-line"></i> Saved Wishlist</a>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item logout-item" (click)="onLogout()">
               <i class="ri-logout-box-r-line"></i> Sign Out
@@ -118,7 +118,7 @@
         *ngFor="let cat of categories" 
         class="category-pill"
         [class.active]="selectedCategory === cat.id"
-        (click)="selectedCategory = cat.id"
+        (click)="selectCategory(cat.id)"
       >
         <i [class]="cat.icon"></i>
         <span>{{ cat.label }}</span>
@@ -130,7 +130,9 @@
   <main class="catalog-section">
     <div class="section-header">
       <div>
-        <h2 class="section-title">Upcoming Trek Batches</h2>
+        <h2 class="section-title">
+          {{ selectedCategory === 'WISHLIST' ? 'Your Saved Wishlist Treks' : 'Upcoming Trek Batches' }}
+        </h2>
         <p class="section-subtitle">Showing {{ filteredTreks.length }} available trek expeditions</p>
       </div>
 
@@ -141,10 +143,12 @@
 
     <!-- Empty State if no treks match filter -->
     <div class="empty-state-card" *ngIf="filteredTreks.length === 0">
-      <i class="ri-compass-search-line empty-icon"></i>
-      <h3>No Treks Match Your Filters</h3>
-      <p>Try clearing your region or difficulty filters to see all available trek expeditions.</p>
-      <button class="reset-filter-btn" (click)="selectedCategory = 'ALL'; selectedDifficulty = 'ALL'; selectedRegion = 'ALL'; searchQuery = ''">
+      <i [class]="selectedCategory === 'WISHLIST' ? 'ri-heart-line empty-icon' : 'ri-compass-search-line empty-icon'"></i>
+      <h3 *ngIf="selectedCategory === 'WISHLIST'">No Saved Treks in Your Wishlist</h3>
+      <h3 *ngIf="selectedCategory !== 'WISHLIST'">No Treks Match Your Filters</h3>
+      <p *ngIf="selectedCategory === 'WISHLIST'">Click the heart bookmark icon on any trek card to save it for quick access.</p>
+      <p *ngIf="selectedCategory !== 'WISHLIST'">Try clearing your region or difficulty filters to see all available trek expeditions.</p>
+      <button class="reset-filter-btn" (click)="selectCategory('ALL'); selectedDifficulty = 'ALL'; selectedRegion = 'ALL'; searchQuery = ''">
         Reset All Filters
       </button>
     </div>
@@ -191,7 +195,7 @@
 
           <div class="meta-row">
             <span class="meta-item"><i class="ri-calendar-event-line"></i> {{ trek.upcomingDate }}</span>
-            <span class="meta-item"><i class="ri-time-line"></i> {{ trek.durationDays }} Day</span>
+            <span class="meta-item"><i class="ri-time-line"></i> {{ trek.durationDays }} {{ trek.durationDays === 1 ? 'Day' : 'Days' }}</span>
             <span class="meta-item"><i class="ri-mountain-line"></i> {{ trek.altitudeFt.toLocaleString('en-IN') }} ft</span>
           </div>
 
@@ -206,7 +210,7 @@
               <span class="price-value">₹{{ trek.pricePerSlot.toLocaleString('en-IN') }}</span>
             </div>
 
-            <button class="view-details-btn">
+            <button class="view-details-btn" (click)="onBookTrek(trek); $event.stopPropagation()">
               <span>Book Seats</span>
               <i class="ri-arrow-right-line"></i>
             </button>
@@ -274,6 +278,40 @@
             </li>
           </ul>
         </div>
+
+        <div class="modal-section reviews-section">
+          <h3>Trekker Reviews &amp; Ratings</h3>
+
+          <!-- Post New Review Form -->
+          <div class="post-review-box">
+            <div class="star-rating-select">
+              <label>Your Rating:</label>
+              <select [(ngModel)]="newReviewRating">
+                <option [value]="5">⭐⭐⭐⭐⭐ (5 Stars - Excellent)</option>
+                <option [value]="4">⭐⭐⭐⭐ (4 Stars - Very Good)</option>
+                <option [value]="3">⭐⭐⭐ (3 Stars - Average)</option>
+                <option [value]="2">⭐⭐ (2 Stars - Poor)</option>
+                <option [value]="1">⭐ (1 Star - Terribly Bad)</option>
+              </select>
+            </div>
+            <textarea [(ngModel)]="newReviewComment" rows="2" placeholder="Write your trek experience, trail condition, or guide feedback..."></textarea>
+            <button class="submit-review-btn" (click)="submitTrekReview()">
+              <i class="ri-chat-new-line"></i> Post Review
+            </button>
+          </div>
+
+          <!-- Existing Reviews List -->
+          <div class="reviews-list">
+            <div class="review-card" *ngFor="let rev of trekReviews">
+              <div class="review-header">
+                <span class="reviewer-name"><i class="ri-user-smile-line"></i> {{ rev.userName }}</span>
+                <span class="review-rating">⭐ {{ rev.rating }}.0</span>
+              </div>
+              <p class="review-comment">{{ rev.comment }}</p>
+            </div>
+          </div>
+
+        </div>
       </div>
 
       <div class="modal-footer">
@@ -338,19 +376,83 @@
 
       <!-- Active Reservation Lock Confirmation Screen -->
       <div class="modal-body lock-active-body" *ngIf="activeBooking">
-        <div class="lock-timer-banner">
-          <i class="ri-time-line timer-icon"></i>
-          <div>
-            <h4>10-Minute Seat Reservation Lock Active!</h4>
-            <p>Your {{ activeBooking.numSeats }} seat(s) are held in database lock until {{ activeBooking.expiresAt | date:'shortTime' }}.</p>
+        
+        <!-- PENDING PAYMENT SCREEN -->
+        <div *ngIf="activeBooking.status === 'PENDING_PAYMENT'">
+          <div class="lock-timer-banner">
+            <i class="ri-time-line timer-icon"></i>
+            <div>
+              <h4>10-Minute Seat Reservation Lock Active!</h4>
+              <p>Your {{ activeBooking.numSeats }} seat(s) are held in database lock until {{ activeBooking.expiresAt | date:'shortTime' }}.</p>
+            </div>
+          </div>
+
+          <div class="booking-receipt-card">
+            <div class="receipt-row"><span>Booking Reference:</span> <code>{{ activeBooking.id }}</code></div>
+            <div class="receipt-row"><span>Status:</span> <strong class="pending-tag">{{ activeBooking.status }}</strong></div>
+            <div class="receipt-row"><span>Total Amount Locked:</span> <strong>₹{{ activeBooking.totalAmount }}</strong></div>
           </div>
         </div>
 
-        <div class="booking-receipt-card">
-          <div class="receipt-row"><span>Booking Reference:</span> <code>{{ activeBooking.id }}</code></div>
-          <div class="receipt-row"><span>Status:</span> <strong class="pending-tag">{{ activeBooking.status }}</strong></div>
-          <div class="receipt-row"><span>Total Amount Locked:</span> <strong>₹{{ activeBooking.totalAmount }}</strong></div>
+        <!-- PAYMENT CONFIRMED DIGITAL TICKET PASS SCREEN -->
+        <div *ngIf="activeBooking.status === 'CONFIRMED'" class="digital-pass-card">
+          <div class="ticket-status-header">
+            <div class="success-icon-badge">
+              <i class="ri-checkbox-circle-fill"></i>
+            </div>
+            <h3>Payment Confirmed — Official Entry Ticket Pass</h3>
+            <p>Your seats are confirmed! Present this digital QR pass to the trek lead at departure.</p>
+          </div>
+
+          <div class="ticket-visual-box">
+            <div class="ticket-top-banner">
+              <span class="ticket-logo"><i class="ri-compass-3-fill"></i> TrekConnect Pass</span>
+              <span class="pass-verified-badge"><i class="ri-shield-check-fill"></i> VERIFIED CONFIRMED</span>
+            </div>
+
+            <div class="ticket-content-grid">
+              <div class="ticket-details-left">
+                <h4 class="pass-event-title">{{ activeBooking.eventTitle || selectedTrek.title }}</h4>
+                <p class="pass-location"><i class="ri-map-pin-2-line"></i> {{ activeBooking.region || selectedTrek.location }}</p>
+
+                <div class="pass-grid-info">
+                  <div class="info-cell">
+                    <span class="cell-label">Date of Trek</span>
+                    <span class="cell-val">{{ activeBooking.eventDate || selectedTrek.upcomingDate }}</span>
+                  </div>
+
+                  <div class="info-cell">
+                    <span class="cell-label">Reserved Seats</span>
+                    <span class="cell-val">{{ activeBooking.numSeats }} Slot(s)</span>
+                  </div>
+
+                  <div class="info-cell">
+                    <span class="cell-label">Total Amount Paid</span>
+                    <span class="cell-val price-val">₹{{ activeBooking.totalAmount }}</span>
+                  </div>
+
+                  <div class="info-cell">
+                    <span class="cell-label">Pass Reference</span>
+                    <span class="cell-val code-val"><code>{{ activeBooking.id }}</code></span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Working QR Code Section -->
+              <div class="ticket-qr-right">
+                <div class="qr-frame">
+                  <img 
+                    [src]="getQrCodeUrl('TrekConnect Ticket Pass #' + activeBooking.id + ' | User: ' + currentUserEmail + ' | Event: ' + selectedTrek.title + ' | Seats: ' + activeBooking.numSeats + ' | Status: CONFIRMED')" 
+                    alt="Working QR Code Ticket Pass" 
+                    class="working-qr-code-img"
+                  />
+                </div>
+                <span class="qr-scan-label"><i class="ri-qr-scan-line"></i> Scan at Departure Gate</span>
+              </div>
+            </div>
+          </div>
         </div>
+
       </div>
 
       <div class="modal-footer">
@@ -359,9 +461,18 @@
           <i class="ri-lock-2-line"></i> Lock Seats & Continue
         </button>
 
-        <button class="confirm-publish-btn" (click)="goToMyBookings()" *ngIf="activeBooking">
-          <i class="ri-ticket-line"></i> View My Bookings Pass
-        </button>
+        <div class="active-booking-actions" *ngIf="activeBooking">
+          <button class="razorpay-pay-btn" (click)="payNowWithRazorpay()" *ngIf="activeBooking.status === 'PENDING_PAYMENT'" [disabled]="isProcessingPayment">
+            <i class="ri-bank-card-line"></i> Pay Now via Razorpay (₹{{ activeBooking.totalAmount }})
+          </button>
+          
+          <button class="confirm-publish-btn" (click)="goToMyBookings()" *ngIf="activeBooking.status === 'CONFIRMED'">
+            <i class="ri-ticket-2-line"></i> View All My Bookings
+          </button>
+          <button class="cancel-btn" (click)="closeCheckoutModal()" *ngIf="activeBooking.status === 'CONFIRMED'">
+            Done / Close Pass
+          </button>
+        </div>
       </div>
 
     </div>

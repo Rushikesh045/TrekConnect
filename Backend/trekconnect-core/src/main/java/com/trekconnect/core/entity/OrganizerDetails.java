@@ -26,10 +26,19 @@ public class OrganizerDetails {
     @Column(name = "organization_name", nullable = false, length = 200)
     private String organizationName;
 
+    @Column(name = "contact_phone", length = 30)
+    private String contactPhone;
+
+    @Column(name = "city_location", length = 100)
+    private String cityLocation;
+
+    @Column(name = "license_number", length = 100)
+    private String licenseNumber;
+
     @Column(name = "verification_status", nullable = false, length = 20)
     private String verificationStatus = "PENDING";
 
-    @Column(name = "verification_docs_url", length = 500)
+    @Column(name = "verification_docs_url", columnDefinition = "TEXT")
     private String verificationDocsUrl;
 
     @Column(name = "verified_by_admin_id", length = 36)
@@ -44,10 +53,13 @@ public class OrganizerDetails {
     public OrganizerDetails() {
     }
 
-    public OrganizerDetails(String id, UserProfile user, String organizationName, String verificationStatus, String verificationDocsUrl, String verifiedByAdminId, LocalDateTime verifiedAt, String rejectionReason) {
+    public OrganizerDetails(String id, UserProfile user, String organizationName, String contactPhone, String cityLocation, String licenseNumber, String verificationStatus, String verificationDocsUrl, String verifiedByAdminId, LocalDateTime verifiedAt, String rejectionReason) {
         this.id = id;
         this.user = user;
         this.organizationName = organizationName;
+        this.contactPhone = contactPhone;
+        this.cityLocation = cityLocation;
+        this.licenseNumber = licenseNumber;
         this.verificationStatus = verificationStatus != null ? verificationStatus : "PENDING";
         this.verificationDocsUrl = verificationDocsUrl;
         this.verifiedByAdminId = verifiedByAdminId;
@@ -81,6 +93,30 @@ public class OrganizerDetails {
 
     public void setOrganizationName(String organizationName) {
         this.organizationName = organizationName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getCityLocation() {
+        return cityLocation;
+    }
+
+    public void setCityLocation(String cityLocation) {
+        this.cityLocation = cityLocation;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
     }
 
     public String getVerificationStatus() {
@@ -137,6 +173,9 @@ public class OrganizerDetails {
         private String id;
         private UserProfile user;
         private String organizationName;
+        private String contactPhone;
+        private String cityLocation;
+        private String licenseNumber;
         private String verificationStatus = "PENDING";
         private String verificationDocsUrl;
         private String verifiedByAdminId;
@@ -155,6 +194,21 @@ public class OrganizerDetails {
 
         public OrganizerDetailsBuilder organizationName(String organizationName) {
             this.organizationName = organizationName;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder contactPhone(String contactPhone) {
+            this.contactPhone = contactPhone;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder cityLocation(String cityLocation) {
+            this.cityLocation = cityLocation;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder licenseNumber(String licenseNumber) {
+            this.licenseNumber = licenseNumber;
             return this;
         }
 
@@ -184,7 +238,7 @@ public class OrganizerDetails {
         }
 
         public OrganizerDetails build() {
-            return new OrganizerDetails(id, user, organizationName, verificationStatus, verificationDocsUrl, verifiedByAdminId, verifiedAt, rejectionReason);
+            return new OrganizerDetails(id, user, organizationName, contactPhone, cityLocation, licenseNumber, verificationStatus, verificationDocsUrl, verifiedByAdminId, verifiedAt, rejectionReason);
         }
     }
 }

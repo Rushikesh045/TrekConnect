@@ -110,6 +110,22 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
+    public List<com.trekconnect.core.dto.response.RegisteredUserResponse> getAllRegisteredUsers() {
+        List<UserProfile> users = userProfileRepository.findAll();
+        return users.stream().map(u -> com.trekconnect.core.dto.response.RegisteredUserResponse.builder()
+                .userId(u.getUserId())
+                .name(u.getName() != null ? u.getName() : "Trekker Explorer")
+                .email(u.getEmail() != null ? u.getEmail() : (u.getUserId() + "@trekconnect.com"))
+                .phone(u.getPhone())
+                .role(u.getRole() != null ? u.getRole() : "USER")
+                .profilePicUrl(u.getProfilePicUrl())
+                .bio(u.getBio())
+                .createdAt(u.getCreatedAt() != null ? u.getCreatedAt() : LocalDateTime.now())
+                .build()
+        ).toList();
+    }
+
+    @Transactional(readOnly = true)
     public AdminDashboardStatsResponse getDashboardStats() {
         long totalUsers = userProfileRepository.count();
         long pendingApprovals = organizerDetailsRepository.findAll().stream()
@@ -121,8 +137,8 @@ public class AdminService {
         long totalTreks = 12;
 
         return AdminDashboardStatsResponse.builder()
-                .totalUsers(totalUsers > 0 ? totalUsers : 150)
-                .totalOrganizers(totalOrganizers > 0 ? totalOrganizers : 12)
+                .totalUsers(totalUsers)
+                .totalOrganizers(totalOrganizers)
                 .pendingApprovals(pendingApprovals)
                 .totalTreks(totalTreks)
                 .build();

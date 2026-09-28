@@ -6,6 +6,8 @@
     <!-- Role Selector -->
     <app-role-selector
       [selectedRole]="selectedRole"
+      [allowAdminRole]="false"
+      label="Register as"
       (roleChange)="onRoleChange($event)"
     ></app-role-selector>
 

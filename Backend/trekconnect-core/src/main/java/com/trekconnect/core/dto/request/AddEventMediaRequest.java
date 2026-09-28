@@ -9,7 +9,6 @@ import jakarta.validation.constraints.Size;
 public class AddEventMediaRequest {
 
     @NotBlank(message = "Media URL is required")
-    @Size(max = 500, message = "Media URL must be less than 500 characters")
     private String mediaUrl;
 
     private String mediaType = "IMAGE";

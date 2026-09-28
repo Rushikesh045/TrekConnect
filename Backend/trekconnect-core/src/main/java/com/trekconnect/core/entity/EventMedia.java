@@ -19,7 +19,7 @@ public class EventMedia {
     @JoinColumn(name = "event_id", nullable = false)
     private Event event;
 
-    @Column(name = "media_url", nullable = false, length = 500)
+    @Column(name = "media_url", nullable = false, columnDefinition = "TEXT")
     private String mediaUrl;
 
     @Column(name = "media_type", nullable = false, length = 10)

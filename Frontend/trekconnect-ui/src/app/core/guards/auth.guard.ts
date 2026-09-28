@@ -25,8 +25,9 @@ export const authGuard: CanActivateFn = (route, state) => {
   const expectedRoles = route.data['roles'] as Role[] | undefined;
   const userRole = tokenService.getRole();
 
-  if (expectedRoles && expectedRoles.length > 0 && userRole) {
-    if (!expectedRoles.includes(userRole)) {
+  if (expectedRoles && expectedRoles.length > 0) {
+    // If roles are required but user has no role (corrupted/missing token data), deny access
+    if (!userRole || !expectedRoles.includes(userRole)) {
       // Step 3: Redirect user to their role-appropriate home route if role doesn't match
       if (userRole === 'ADMIN') {
         router.navigate(['/admin/dashboard']);

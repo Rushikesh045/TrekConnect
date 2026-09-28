@@ -22,10 +22,13 @@ public class UserProfile {
     @Column(nullable = false, length = 150)
     private String name;
 
+    @Column(length = 150)
+    private String email;
+
     @Column(length = 15)
     private String phone;
 
-    @Column(name = "profile_pic_url", length = 500)
+    @Column(name = "profile_pic_url", columnDefinition = "TEXT")
     private String profilePicUrl;
 
     @Column(columnDefinition = "TEXT")
@@ -43,9 +46,10 @@ public class UserProfile {
     public UserProfile() {
     }
 
-    public UserProfile(String userId, String name, String phone, String profilePicUrl, String bio, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserProfile(String userId, String name, String email, String phone, String profilePicUrl, String bio, String role, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.userId = userId;
         this.name = name;
+        this.email = email;
         this.phone = phone;
         this.profilePicUrl = profilePicUrl;
         this.bio = bio;
@@ -72,6 +76,14 @@ public class UserProfile {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getPhone() {
@@ -137,6 +149,7 @@ public class UserProfile {
     public static class UserProfileBuilder {
         private String userId;
         private String name;
+        private String email;
         private String phone;
         private String profilePicUrl;
         private String bio;
@@ -151,6 +164,11 @@ public class UserProfile {
 
         public UserProfileBuilder name(String name) {
             this.name = name;
+            return this;
+        }
+
+        public UserProfileBuilder email(String email) {
+            this.email = email;
             return this;
         }
 
@@ -185,7 +203,7 @@ public class UserProfile {
         }
 
         public UserProfile build() {
-            return new UserProfile(userId, name, phone, profilePicUrl, bio, role, createdAt, updatedAt);
+            return new UserProfile(userId, name, email, phone, profilePicUrl, bio, role, createdAt, updatedAt);
         }
     }
 }

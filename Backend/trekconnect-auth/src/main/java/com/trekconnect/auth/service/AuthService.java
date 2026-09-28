@@ -2,6 +2,7 @@ package com.trekconnect.auth.service;
 
 import com.trekconnect.auth.dto.event.UserRegisteredEvent;
 import com.trekconnect.auth.dto.request.*;
+import com.trekconnect.auth.dto.response.AdminUserCreateResponse;
 import com.trekconnect.auth.dto.response.AuthResponse;
 import com.trekconnect.auth.dto.response.MessageResponse;
 import com.trekconnect.auth.dto.response.UserInfoResponse;
@@ -47,6 +48,7 @@ public class AuthService {
     private final StringRedisTemplate redisTemplate;
     private final UserRegisteredEventPublisher userRegisteredEventPublisher;
     private final EmailVerificationService emailVerificationService;
+    private final WelcomeEmailService welcomeEmailService;
 
     @Value("${jwt.refresh-token-expiration-ms:604800000}")
     private long refreshTokenExpirationMs;
@@ -62,7 +64,8 @@ public class AuthService {
             JwtProvider jwtProvider,
             StringRedisTemplate redisTemplate,
             UserRegisteredEventPublisher userRegisteredEventPublisher,
-            EmailVerificationService emailVerificationService) {
+            EmailVerificationService emailVerificationService,
+            WelcomeEmailService welcomeEmailService) {
         this.userCredentialsRepository = userCredentialsRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.passwordEncoder = passwordEncoder;
@@ -70,6 +73,7 @@ public class AuthService {
         this.redisTemplate = redisTemplate;
         this.userRegisteredEventPublisher = userRegisteredEventPublisher;
         this.emailVerificationService = emailVerificationService;
+        this.welcomeEmailService = welcomeEmailService;
     }
 
     @Transactional
@@ -129,6 +133,11 @@ public class AuthService {
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
             handleFailedLoginAttempt(user);
             throw new InvalidCredentialsException("Invalid email or password");
+        }
+
+        if (request.getRole() != null && !request.getRole().equals(user.getRole())) {
+            log.warn("Role mismatch during login for email: {}. Requested: {}, Account role: {}", request.getEmail(), request.getRole(), user.getRole());
+            throw new InvalidCredentialsException("Invalid email, password, or role mismatch for selected role.");
         }
 
         if (user.getFailedLoginAttempts() > 0 || user.getLockedUntil() != null) {
@@ -238,6 +247,81 @@ public class AuthService {
                 .role(user.getRole())
                 .isEmailVerified(user.getIsEmailVerified())
                 .isActive(user.getIsActive())
+                .build();
+    }
+
+    @Transactional
+    public AdminUserCreateResponse createAdminUser(AdminUserCreateRequest request) {
+        log.info("Processing admin user creation request for email: {}, role: {}", request.getEmail(), request.getRole());
+
+        if (userCredentialsRepository.existsByEmail(request.getEmail())) {
+            throw new UserAlreadyExistsException("User with email " + request.getEmail() + " already exists");
+        }
+
+        Role role = request.getRole() != null ? request.getRole() : Role.ADMIN;
+        
+        String rawPassword = request.getPassword();
+        if (rawPassword == null || rawPassword.isBlank()) {
+            rawPassword = "Tk#" + UUID.randomUUID().toString().replace("-", "").substring(0, 8);
+        }
+
+        UserCredentials user = UserCredentials.builder()
+                .email(request.getEmail())
+                .passwordHash(passwordEncoder.encode(rawPassword))
+                .role(role)
+                .isEmailVerified(true) // Created by admin, auto-verified
+                .isActive(true)
+                .failedLoginAttempts(0)
+                .build();
+
+        user = userCredentialsRepository.save(user);
+        log.info("Admin-provisioned UserCredentials created successfully with userId: {}", user.getId());
+
+        // Publish event for profile creation in main_db
+        UserRegisteredEvent event = UserRegisteredEvent.builder()
+                .userId(user.getId())
+                .email(user.getEmail())
+                .name(request.getName())
+                .role(user.getRole())
+                .build();
+        userRegisteredEventPublisher.publishUserRegistered(event);
+
+        // Send welcome email
+        boolean emailSent = welcomeEmailService.sendWelcomeEmail(request.getName(), user.getEmail(), user.getRole(), rawPassword);
+
+        return AdminUserCreateResponse.builder()
+                .userId(user.getId())
+                .name(request.getName())
+                .email(user.getEmail())
+                .role(user.getRole())
+                .generatedPassword(rawPassword)
+                .emailSent(emailSent)
+                .message("User account created successfully! " + (emailSent ? "Welcome email sent to user." : "Account created. Password details available in admin console."))
+                .build();
+    }
+
+    @Transactional
+    public MessageResponse changePassword(String userId, ChangePasswordRequest request) {
+        log.info("Processing change password request for userId: {}", userId);
+
+        UserCredentials user = userCredentialsRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPasswordHash())) {
+            throw new InvalidCredentialsException("Current password is incorrect");
+        }
+
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setFailedLoginAttempts(0);
+        user.setLockedUntil(null);
+        userCredentialsRepository.save(user);
+
+        refreshTokenRepository.revokeAllUserTokens(user.getId());
+
+        log.info("Successfully changed password for userId: {}", user.getId());
+        return MessageResponse.builder()
+                .message("Password changed successfully! Please log in with your new password.")
+                .success(true)
                 .build();
     }
 

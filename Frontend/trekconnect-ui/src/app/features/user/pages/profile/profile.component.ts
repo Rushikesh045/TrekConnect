@@ -33,12 +33,56 @@ export class ProfileComponent implements OnInit {
   userRole = '';
   profileData: UserProfileResponse | null = null;
 
+  // Dual Avatar Source Option: 'LOCAL' or 'URL'
+  avatarSourceType: 'LOCAL' | 'URL' = 'LOCAL';
+  uploadedAvatarFileName = '';
+  uploadedAvatarFileSize = '';
+
   profileForm = this.fb.group({
     name: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(150)]],
     phone: ['', [Validators.pattern('^[0-9+\\-\\s]{8,15}$')]],
     bio: ['', [Validators.maxLength(1000)]],
-    profilePicUrl: ['', [Validators.maxLength(500)]]
+    profilePicUrl: ['', [Validators.maxLength(5000000)]] // Support Base64 data URLs as well as web URLs
   });
+
+  setAvatarSourceType(type: 'LOCAL' | 'URL'): void {
+    this.avatarSourceType = type;
+  }
+
+  onLocalAvatarSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.uploadedAvatarFileName = file.name;
+    this.uploadedAvatarFileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.profileForm.patchValue({ profilePicUrl: dataUrl });
+      this.notificationService.showSuccess(`Avatar photo "${file.name}" loaded successfully!`, 'File Selected');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeSelectedAvatar(): void {
+    this.uploadedAvatarFileName = '';
+    this.uploadedAvatarFileSize = '';
+    this.profileForm.patchValue({ profilePicUrl: '' });
+  }
+
+  get backLink(): string {
+    if (this.userRole === 'ADMIN') return '/admin/dashboard';
+    if (this.userRole === 'ORGANIZER') return '/organizer/dashboard';
+    return '/user/home';
+  }
+
+  get backLinkLabel(): string {
+    if (this.userRole === 'ADMIN') return 'Back to Admin Dashboard';
+    if (this.userRole === 'ORGANIZER') return 'Back to Organizer Portal';
+    return 'Back to Explorer';
+  }
 
   ngOnInit(): void {
     const user = this.tokenService.getUser();
@@ -46,6 +90,11 @@ export class ProfileComponent implements OnInit {
     this.userRole = this.tokenService.getRole() || 'USER';
 
     this.loadProfile();
+  }
+
+  getQrCodeUrl(dataString: string): string {
+    if (!dataString) return 'assets/images/qr-code.svg';
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(dataString)}`;
   }
 
   loadProfile(): void {

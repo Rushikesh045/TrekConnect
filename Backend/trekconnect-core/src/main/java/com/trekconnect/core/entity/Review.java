@@ -2,15 +2,14 @@ package com.trekconnect.core.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 /**
- * Entity representing Event Reviews and Comments stored in main_db.
+ * Review entity storing trekker 1-5 star ratings and feedback comments.
  * 
  * WHY THIS ENTITY WAS CREATED:
- * Allows trekkers with CONFIRMED past bookings to post star ratings (1-5) and commentary.
- * If rating is NULL, the record represents a plain discussion comment.
+ * Allows trekkers to submit post-trek reviews and ratings, computing average trek ratings.
  */
 @Entity
 @Table(name = "reviews")
@@ -22,36 +21,29 @@ import java.util.UUID;
 public class Review {
 
     @Id
-    @Column(length = 36)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private String id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false)
-    private Event event;
+    @Column(name = "trek_id", nullable = false)
+    private String trekId;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private UserProfile user;
+    @Column(name = "user_id", nullable = false)
+    private String userId;
 
-    /**
-     * Rating from 1 to 5 stars. NULL represents a plain comment without a star rating.
-     */
-    @Column
-    private Integer rating;
+    @Column(name = "user_name", nullable = false)
+    private String userName;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(name = "rating", nullable = false)
+    private Integer rating; // 1 to 5 stars
+
+    @Column(name = "comment", columnDefinition = "TEXT")
     private String comment;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @PrePersist
-    public void prePersist() {
-        if (this.id == null) {
-            this.id = UUID.randomUUID().toString();
-        }
-        if (this.createdAt == null) {
-            this.createdAt = LocalDateTime.now();
-        }
+    protected void onCreate() {
+        this.createdAt = LocalDateTime.now();
     }
 }

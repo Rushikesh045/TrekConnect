@@ -123,4 +123,31 @@ public class AuthController {
         UserInfoResponse userInfo = authService.getMe(userId);
         return ResponseEntity.ok(userInfo);
     }
+
+    @PostMapping("/admin/create-user")
+    public ResponseEntity<com.trekconnect.auth.dto.response.AdminUserCreateResponse> createAdminUser(
+            @Valid @RequestBody com.trekconnect.auth.dto.request.AdminUserCreateRequest request) {
+        log.info("Received POST /auth/admin/create-user for email: {}", request.getEmail());
+        com.trekconnect.auth.dto.response.AdminUserCreateResponse response = authService.createAdminUser(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<MessageResponse> changePassword(
+            @Valid @RequestBody com.trekconnect.auth.dto.request.ChangePasswordRequest request,
+            HttpServletRequest httpServletRequest) {
+        log.info("Received POST /auth/change-password");
+        String authHeader = httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION);
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        String token = authHeader.substring(7);
+        if (!jwtProvider.validateToken(token)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+
+        String userId = jwtProvider.getUserIdFromToken(token);
+        MessageResponse response = authService.changePassword(userId, request);
+        return ResponseEntity.ok(response);
+    }
 }

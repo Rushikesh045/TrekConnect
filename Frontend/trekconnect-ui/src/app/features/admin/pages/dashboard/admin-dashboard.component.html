@@ -16,6 +16,9 @@
         <span class="admin-profile-pill">
           <i class="ri-user-settings-line"></i> {{ adminEmail }}
         </span>
+        <button class="nav-icon-btn" title="My Profile" routerLink="/user/profile">
+          <i class="ri-user-3-line"></i> Profile
+        </button>
         <button class="logout-btn" (click)="onLogout()">
           <i class="ri-logout-box-r-line"></i> Sign Out
         </button>
@@ -82,6 +85,9 @@
         <button class="tab-btn" [class.active]="selectedTab === 'REJECTED'" (click)="setTab('REJECTED')">
           <i class="ri-close-circle-line"></i> Rejected Applications
         </button>
+        <button class="tab-btn" [class.active]="selectedTab === 'USERS'" (click)="setTab('USERS')">
+          <i class="ri-user-search-line"></i> Registered Users ({{ registeredUsers.length }})
+        </button>
         <button class="tab-btn" [class.active]="selectedTab === 'DISPUTES'" (click)="setTab('DISPUTES')">
           <i class="ri-scales-3-line"></i> Dispute Oversights ({{ disputes.length }})
         </button>
@@ -91,12 +97,14 @@
       </div>
 
       <!-- APPLICATIONS TABLE -->
-      <div class="table-container" *ngIf="selectedTab !== 'DISPUTES'">
+      <div class="table-container" *ngIf="selectedTab !== 'DISPUTES' && selectedTab !== 'USERS'">
         <table class="applications-table" *ngIf="applications.length > 0">
           <thead>
             <tr>
-              <th>Organization Name</th>
-              <th>Applicant User ID</th>
+              <th>Organization Details</th>
+              <th>Contact Phone</th>
+              <th>Operating Base</th>
+              <th>Reg / License No.</th>
               <th>Verification Docs</th>
               <th>Status</th>
               <th>Actions</th>
@@ -105,13 +113,22 @@
           <tbody>
             <tr *ngFor="let app of applications">
               <td>
-                <span class="org-name-text">{{ app.organizationName }}</span>
+                <div class="org-info-cell">
+                  <span class="org-name-text">{{ app.organizationName }}</span>
+                  <small class="user-id-sub"><i class="ri-user-follow-line"></i> Registered Applicant Account</small>
+                </div>
               </td>
               <td>
-                <span class="user-id-code"><code>{{ app.userId }}</code></span>
+                <span class="meta-text">{{ app.contactPhone || 'N/A' }}</span>
               </td>
               <td>
-                <a *ngIf="app.verificationDocsUrl" [href]="app.verificationDocsUrl" target="_blank" class="doc-link">
+                <span class="meta-text">{{ app.cityLocation || 'N/A' }}</span>
+              </td>
+              <td>
+                <span class="meta-code"><code>{{ app.licenseNumber || 'N/A' }}</code></span>
+              </td>
+              <td>
+                <a *ngIf="app.verificationDocsUrl" [href]="app.verificationDocsUrl" target="_blank" rel="noopener noreferrer" class="doc-link">
                   <i class="ri-file-pdf-2-line"></i> View Certificate
                 </a>
                 <span *ngIf="!app.verificationDocsUrl" class="no-doc">No Docs Attached</span>
@@ -191,6 +208,66 @@
             </tr>
           </tbody>
         </table>
+
+        <div class="empty-table-card" *ngIf="disputes.length === 0">
+          <i class="ri-scales-3-line empty-icon"></i>
+          <h3>No Dispute Tickets Found</h3>
+          <p>There are currently no trekker payment disputes requiring administrative review.</p>
+        </div>
+      </div>
+
+      <!-- REGISTERED USERS TABLE -->
+      <div class="table-container" *ngIf="selectedTab === 'USERS'">
+        <div class="users-header-toolbar">
+          <div>
+            <h3 class="users-toolbar-title">Registered System Accounts</h3>
+            <p class="users-toolbar-subtitle">All platform members including Trekkers, Organizers, and Administrators.</p>
+          </div>
+          <button (click)="openCreateAdminModal()" class="btn-provision-account">
+            <i class="ri-user-add-line"></i> + Provision New Admin / User
+          </button>
+        </div>
+
+        <table class="applications-table" *ngIf="registeredUsers.length > 0">
+          <thead>
+            <tr>
+              <th>Member Name & Avatar</th>
+              <th>Email Address</th>
+              <th>Contact Phone</th>
+              <th>Account Role</th>
+              <th>Bio / Details</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let u of registeredUsers">
+              <td>
+                <div class="org-info-cell user-info-flex">
+                  <img [src]="u.profilePicUrl || 'assets/images/default-avatar.svg'" alt="User Avatar" class="user-avatar-img" />
+                  <div>
+                    <strong class="user-name-text">{{ u.name }}</strong>
+                  </div>
+                </div>
+              </td>
+              <td><span class="meta-text"><i class="ri-mail-line"></i> {{ u.email }}</span></td>
+              <td><span class="meta-text"><i class="ri-phone-line"></i> {{ u.phone || 'Not Provided' }}</span></td>
+              <td>
+                <span class="status-badge" [class.verified]="u.role === 'ORGANIZER'" [class.pending]="u.role === 'USER'" [class.rejected]="u.role === 'ADMIN'">
+                  <i class="ri-user-star-line" *ngIf="u.role === 'ORGANIZER'"></i>
+                  <i class="ri-user-3-line" *ngIf="u.role === 'USER'"></i>
+                  <i class="ri-shield-user-line" *ngIf="u.role === 'ADMIN'"></i>
+                  {{ u.role === 'USER' ? 'TREKKER' : u.role }}
+                </span>
+              </td>
+              <td><span class="meta-text bio-text">{{ u.bio || 'Trekker Community Member' }}</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="empty-table-card" *ngIf="registeredUsers.length === 0">
+          <i class="ri-user-search-line empty-icon"></i>
+          <h3>No Registered Users Found</h3>
+          <p>User account profiles will be listed here as new members join TrekConnect.</p>
+        </div>
       </div>
 
     </section>
@@ -220,6 +297,128 @@
       <div class="modal-footer">
         <button class="cancel-btn" (click)="closeRejectModal()">Cancel</button>
         <button class="confirm-reject-btn" (click)="confirmReject()">Confirm Rejection</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Admin / User Provisioning Modal -->
+  <div class="modal-backdrop" *ngIf="isCreateAdminModalOpen" (click)="closeCreateAdminModal()">
+    <div class="modal-card provision-modal-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeCreateAdminModal()"><i class="ri-close-line"></i></button>
+
+      <div class="modal-header">
+        <h3 class="modal-header-flex">
+          <i class="ri-user-add-line modal-header-icon"></i> Provision New Account
+        </h3>
+        <p>Create a new account on behalf of an Admin, Organizer, or Trekker user. A welcome email with credentials will be dispatched automatically.</p>
+      </div>
+
+      <!-- Form Mode -->
+      <div class="modal-body" *ngIf="!createdAdminResult">
+        <div class="form-group-item">
+          <label class="form-label-item">
+            Full Name <span class="required-star">*</span>
+          </label>
+          <input 
+            type="text" 
+            [(ngModel)]="newAdminName" 
+            placeholder="e.g. Sarah Jenkins"
+            class="form-input-field"
+          />
+        </div>
+
+        <div class="form-group-item">
+          <label class="form-label-item">
+            Email Address <span class="required-star">*</span>
+          </label>
+          <input 
+            type="email" 
+            [(ngModel)]="newAdminEmail" 
+            placeholder="e.g. sarah.admin@trekconnect.com"
+            class="form-input-field"
+          />
+        </div>
+
+        <div class="form-group-item">
+          <label class="form-label-item">
+            Assigned Role <span class="required-star">*</span>
+          </label>
+          <select 
+            [(ngModel)]="newAdminRole" 
+            class="form-select-field"
+          >
+            <option value="ADMIN">ADMIN — Full Administrative Rights</option>
+            <option value="ORGANIZER">ORGANIZER — Event & Trek Host</option>
+            <option value="USER">USER — Trekker Explorer</option>
+          </select>
+        </div>
+
+        <div class="form-group-item">
+          <label class="form-label-item">
+            Custom Password <small class="label-hint">(Optional — Leave blank to auto-generate secure password)</small>
+          </label>
+          <input 
+            type="text" 
+            [(ngModel)]="newAdminPassword" 
+            placeholder="Auto-generated if left empty"
+            class="form-input-field font-mono"
+          />
+        </div>
+      </div>
+
+      <!-- Success Result Mode -->
+      <div class="modal-body success-result-body" *ngIf="createdAdminResult">
+        <div class="success-alert-box">
+          <h4 class="alert-title">
+            <i class="ri-checkbox-circle-fill"></i> Account Created Successfully!
+          </h4>
+          <p class="alert-message">{{ createdAdminResult.message }}</p>
+        </div>
+
+        <div class="account-details-card">
+          <div class="detail-field">
+            <span class="detail-label">Account ID</span>
+            <div class="detail-value font-mono">{{ createdAdminResult.userId }}</div>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Email Address</span>
+            <div class="detail-value">{{ createdAdminResult.email }}</div>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Assigned Role</span>
+            <div><span class="status-badge rejected">{{ createdAdminResult.role }}</span></div>
+          </div>
+          <div class="detail-field">
+            <span class="detail-label">Temporary Password</span>
+            <div class="temp-password-box">
+              {{ createdAdminResult.generatedPassword }}
+            </div>
+          </div>
+        </div>
+
+        <div class="security-warning-banner">
+          <i class="ri-information-line"></i> The user should change their password after first login.
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="cancel-btn" (click)="closeCreateAdminModal()" *ngIf="!createdAdminResult">Cancel</button>
+        <button 
+          class="confirm-reject-btn btn-confirm-green" 
+          (click)="submitCreateAdmin()" 
+          [disabled]="isCreatingAdmin"
+          *ngIf="!createdAdminResult"
+        >
+          <i class="ri-loader-4-line spin" *ngIf="isCreatingAdmin"></i>
+          {{ isCreatingAdmin ? 'Provisioning Account...' : 'Provision Account' }}
+        </button>
+        <button 
+          class="confirm-reject-btn btn-confirm-green" 
+          (click)="closeCreateAdminModal()" 
+          *ngIf="createdAdminResult"
+        >
+          Done
+        </button>
       </div>
     </div>
   </div>

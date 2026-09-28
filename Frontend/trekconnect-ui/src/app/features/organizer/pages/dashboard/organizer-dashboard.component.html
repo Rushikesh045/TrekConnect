@@ -16,6 +16,12 @@
         <span class="business-pill">
           <i class="ri-building-line"></i> {{ organizationName }}
         </span>
+        <button class="nav-icon-btn" title="Explore Treks" routerLink="/user/home">
+          <i class="ri-compass-line"></i> Explore Treks
+        </button>
+        <button class="nav-icon-btn" title="My Profile" routerLink="/user/profile">
+          <i class="ri-user-3-line"></i> Profile
+        </button>
         <button class="create-event-top-btn" (click)="openCreateModal()">
           <i class="ri-add-line"></i> Launch New Batch
         </button>
@@ -87,7 +93,7 @@
             <span class="difficulty-badge" [class.easy]="event.difficulty === 'EASY'" [class.moderate]="event.difficulty === 'MODERATE'" [class.hard]="event.difficulty === 'HARD'">
               {{ event.difficulty || 'MODERATE' }}
             </span>
-            <span class="version-tag" title="JPA Optimistic Concurrency Locking Version">
+            <span class="version-tag" title="Batch Revision Number">
               v{{ event.version }}
             </span>
           </div>
@@ -114,14 +120,19 @@
 
           <!-- Capacity Bar -->
           <div class="capacity-progress-bar">
-            <div class="progress-fill" [style.width.%]="(event.capacityBooked / event.capacityTotal) * 100"></div>
+            <div class="progress-fill" [style.width.%]="((event.capacityBooked || 0) / (event.capacityTotal || 1)) * 100"></div>
           </div>
 
           <!-- Actions Footer -->
           <div class="card-actions-footer">
-            <button class="secondary-btn" (click)="openMediaModal(event)">
-              <i class="ri-image-add-line"></i> Media Gallery ({{ event.mediaGallery?.length || 0 }})
-            </button>
+            <div class="actions-left">
+              <button class="secondary-btn" (click)="openMediaModal(event)">
+                <i class="ri-image-add-line"></i> Media ({{ event.mediaGallery?.length || 0 }})
+              </button>
+              <button class="delete-batch-btn" (click)="openDeleteConfirmModal(event)" title="Delete Event Batch">
+                <i class="ri-delete-bin-line"></i> Delete Batch
+              </button>
+            </div>
             <span class="status-pill verified">
               <i class="ri-checkbox-circle-fill"></i> {{ event.status }}
             </span>
@@ -147,16 +158,25 @@
 
       <div class="modal-header">
         <h3>Launch Scheduled Trek Batch</h3>
-        <p>Configure pricing, slot capacity, and dates for trekkers to join.</p>
+        <p>Configure pricing, slot capacity, dates, and cover media for trekkers to join.</p>
       </div>
 
       <div class="modal-body">
         
-        <div class="form-group">
-          <label>Select Trek Location <span class="required">*</span></label>
-          <select [(ngModel)]="newEvent.trekId" class="form-control">
-            <option *ngFor="let t of treks" [value]="t.name">{{ t.name }} ({{ t.region }})</option>
-          </select>
+        <div class="form-group location-autocomplete-group">
+          <label>Select / Search Trek Location <span class="required">*</span></label>
+          <div class="input-with-icon">
+            <i class="ri-map-pin-line search-loc-icon"></i>
+            <input type="text" [(ngModel)]="locationQuery" (input)="onLocationInput()" class="form-control" placeholder="Type location (e.g. Velhe, Lonavala, Karjat, Igatpuri...)" autocomplete="off">
+          </div>
+
+          <!-- Free Location Autocomplete Suggestions Dropdown -->
+          <div class="autocomplete-dropdown" *ngIf="isSuggestionsOpen && locationSuggestions.length > 0">
+            <div class="suggestion-item" *ngFor="let loc of locationSuggestions" (click)="selectLocation(loc)">
+              <i class="ri-map-pin-2-fill"></i>
+              <span>{{ loc }}</span>
+            </div>
+          </div>
         </div>
 
         <div class="form-group">
@@ -181,6 +201,66 @@
           <input type="number" [(ngModel)]="newEvent.capacityTotal" class="form-control" placeholder="30">
         </div>
 
+        <!-- Cover Photo / Media Upload Section -->
+        <div class="form-group doc-upload-group">
+          <label>Event Cover Photo / Media (Visible on Upcoming Trek Batches)</label>
+          
+          <div class="source-toggle-tabs">
+            <button 
+              type="button" 
+              class="tab-btn" 
+              [class.active]="coverImageSourceType === 'LOCAL'" 
+              (click)="setCoverImageSourceType('LOCAL')"
+            >
+              <i class="ri-upload-cloud-2-line"></i> Upload Photo (JPG / PNG)
+            </button>
+            <button 
+              type="button" 
+              class="tab-btn" 
+              [class.active]="coverImageSourceType === 'URL'" 
+              (click)="setCoverImageSourceType('URL')"
+            >
+              <i class="ri-link-m"></i> Provide Web Image URL
+            </button>
+          </div>
+
+          <!-- OPTION A: LOCAL IMAGE FILE UPLOADER -->
+          <div class="local-file-box" *ngIf="coverImageSourceType === 'LOCAL'">
+            <div class="file-dropzone" *ngIf="!uploadedCoverFileName && !newEvent.imageUrl">
+              <i class="ri-image-add-line drop-icon"></i>
+              <div class="drop-text">
+                <span class="primary-text">Click to select cover JPG photo from computer</span>
+                <span class="sub-text">Supports JPG, JPEG, PNG, WEBP (Max 10MB)</span>
+              </div>
+              <input 
+                type="file" 
+                class="hidden-file-input" 
+                accept="image/*" 
+                (change)="onLocalCoverFileSelected($event)" 
+              />
+            </div>
+
+            <!-- Uploaded File Preview Card -->
+            <div class="file-preview-card" *ngIf="uploadedCoverFileName || newEvent.imageUrl">
+              <div class="file-icon-badge">
+                <i class="ri-image-fill img-color"></i>
+              </div>
+              <div class="file-info-details">
+                <span class="file-name">{{ uploadedCoverFileName || 'Cover Image Selected' }}</span>
+                <span class="file-size">{{ uploadedCoverFileSize || 'Custom Cover Active' }}</span>
+              </div>
+              <button type="button" class="remove-file-btn" (click)="removeSelectedCoverFile()" title="Remove file">
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- OPTION B: WEB URL INPUT -->
+          <div class="url-input-box" *ngIf="coverImageSourceType === 'URL'">
+            <input type="url" [(ngModel)]="newEvent.imageUrl" class="form-control" placeholder="https://images.unsplash.com/photo-1544735716-392fe2489ffa">
+          </div>
+        </div>
+
         <div class="form-group">
           <label>Itinerary Description</label>
           <textarea [(ngModel)]="newEvent.description" rows="3" class="form-control" placeholder="Describe the camping highlights, pickup points, meal arrangements..."></textarea>
@@ -201,18 +281,104 @@
       <button class="close-modal-btn" (click)="closeMediaModal()"><i class="ri-close-line"></i></button>
 
       <div class="modal-header">
-        <h3>Add Media Gallery Photo</h3>
+        <h3>Add Media Gallery Photo / Document</h3>
         <p>Event: <strong>{{ selectedEventForMedia?.title }}</strong></p>
       </div>
 
       <div class="modal-body">
-        <label>Photo Image URL <span class="required">*</span></label>
-        <input type="url" [(ngModel)]="newMediaUrl" class="form-control" placeholder="https://images.unsplash.com/photo-1544735716-392fe2489ffa">
+        
+        <!-- Source Toggle Tabs -->
+        <div class="source-toggle-tabs">
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="mediaSourceType === 'LOCAL'" 
+            (click)="setMediaSourceType('LOCAL')"
+          >
+            <i class="ri-upload-cloud-2-line"></i> Upload Local Image / File
+          </button>
+          <button 
+            type="button" 
+            class="tab-btn" 
+            [class.active]="mediaSourceType === 'URL'" 
+            (click)="setMediaSourceType('URL')"
+          >
+            <i class="ri-link-m"></i> Provide Web Image URL
+          </button>
+        </div>
+
+        <!-- OPTION A: LOCAL FILE UPLOADER -->
+        <div class="local-file-box" *ngIf="mediaSourceType === 'LOCAL'">
+          <div class="file-dropzone" *ngIf="!uploadedMediaFileName">
+            <i class="ri-image-add-line drop-icon"></i>
+            <div class="drop-text">
+              <span class="primary-text">Click to choose image or document from your computer</span>
+              <span class="sub-text">Supports JPG, PNG, WEBP, SVG, PDF (Max 10MB)</span>
+            </div>
+            <input 
+              type="file" 
+              class="hidden-file-input" 
+              accept="image/*,.pdf" 
+              (change)="onLocalMediaFileSelected($event)" 
+            />
+          </div>
+
+          <!-- File Preview Card -->
+          <div class="file-preview-card" *ngIf="uploadedMediaFileName">
+            <div class="file-icon-badge">
+              <i [class]="uploadedMediaFileName.endsWith('.pdf') ? 'ri-file-pdf-fill pdf-color' : 'ri-image-2-fill img-color'"></i>
+            </div>
+            <div class="file-info-details">
+              <span class="file-name">{{ uploadedMediaFileName }}</span>
+              <span class="file-size">{{ uploadedMediaFileSize }} • Ready to Add</span>
+            </div>
+            <button type="button" class="remove-file-btn" (click)="removeSelectedMediaFile()" title="Remove file">
+              <i class="ri-delete-bin-line"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- OPTION B: WEB URL INPUT -->
+        <div class="url-input-box" *ngIf="mediaSourceType === 'URL'">
+          <label>Photo / Document Image URL <span class="required">*</span></label>
+          <input type="url" [(ngModel)]="newMediaUrl" class="form-control" placeholder="https://images.unsplash.com/photo-1544735716-392fe2489ffa">
+        </div>
+
       </div>
 
       <div class="modal-footer">
         <button class="cancel-btn" (click)="closeMediaModal()">Cancel</button>
         <button class="confirm-publish-btn" (click)="submitAddMedia()">Upload to Gallery</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Event Confirmation Modal -->
+  <div class="modal-backdrop" *ngIf="isDeleteConfirmModalOpen && selectedEventToDelete" (click)="closeDeleteConfirmModal()">
+    <div class="modal-card delete-confirm-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeDeleteConfirmModal()"><i class="ri-close-line"></i></button>
+
+      <div class="delete-header">
+        <div class="warning-icon-badge">
+          <i class="ri-error-warning-fill"></i>
+        </div>
+        <h3>Delete Scheduled Event Batch?</h3>
+        <p class="delete-subtitle">
+          Are you sure you want to delete <strong>"{{ selectedEventToDelete.title }}"</strong>?
+        </p>
+      </div>
+
+      <div class="delete-body">
+        <p class="warning-text">
+          <i class="ri-alert-line"></i> This action cannot be undone. This batch will be permanently deleted from the database and will no longer appear on the public trek explorer.
+        </p>
+      </div>
+
+      <div class="modal-footer delete-footer">
+        <button class="cancel-btn" (click)="closeDeleteConfirmModal()">No, Keep Batch</button>
+        <button class="confirm-delete-btn" (click)="confirmDeleteEvent()">
+          <i class="ri-delete-bin-line"></i> Yes, Delete Batch
+        </button>
       </div>
     </div>
   </div>

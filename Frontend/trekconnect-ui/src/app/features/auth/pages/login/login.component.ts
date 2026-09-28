@@ -4,6 +4,7 @@ import { FormBuilder, FormsModule, ReactiveFormsModule, Validators } from '@angu
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
+import { TokenService } from '../../../../core/services/token.service';
 import { Role } from '../../../../core/models/auth.model';
 import { AuthCardLayoutComponent } from '../../../../shared/components/auth-card-layout/auth-card-layout.component';
 import { FormInputComponent } from '../../../../shared/components/form-input/form-input.component';
@@ -38,6 +39,7 @@ export class LoginComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
+  private tokenService = inject(TokenService);
   private router = inject(Router);
 
   // Selected identity role: 'USER' (default), 'ORGANIZER', or 'ADMIN'
@@ -81,21 +83,33 @@ export class LoginComponent {
     this.isLoading = true;
     const { email, password } = this.loginForm.value;
 
-    // Step 3: Trigger login API request to Auth Service
+    // Step 3: Trigger login API request to Auth Service with selected identity role
     this.authService.login({
       email: email!,
       password: password!,
-      deviceInfo: navigator.userAgent
+      deviceInfo: navigator.userAgent,
+      role: this.selectedRole
     }).subscribe({
       next: (res) => {
-        // Step 4: On success, stop loading & show success notification toast
+        // Step 4: Strict Role Matching Validation
+        if (this.selectedRole !== res.user.role) {
+          this.isLoading = false;
+          this.tokenService.clearTokens(); // Directly clear tokens instead of calling unsubscribed logout()
+          this.notificationService.showError(
+            `Role mismatch: You selected "${this.selectedRole}" but this account is registered as "${res.user.role}". Please switch to the correct role tab.`,
+            'Authentication Failed'
+          );
+          return;
+        }
+
+        // Step 5: On success, stop loading & show success notification toast
         this.isLoading = false;
         this.notificationService.showSuccess(
           `Welcome back, ${res.user.email}! Signed in as ${res.user.role}.`,
           'Login Successful'
         );
 
-        // Step 5: Perform role-based navigation redirect
+        // Step 6: Perform role-based navigation redirect
         if (res.user.role === 'ADMIN') {
           this.router.navigate(['/admin/dashboard']);
         } else if (res.user.role === 'ORGANIZER') {
@@ -105,9 +119,9 @@ export class LoginComponent {
         }
       },
       error: (err) => {
-        // Step 6: On failure, stop loading & display server error message
+        // Step 7: On failure, stop loading & display server error message
         this.isLoading = false;
-        const msg = err?.error?.message || 'Invalid credentials or connection error. Please try again.';
+        const msg = err?.error?.message || 'Invalid email, password, or role for selected tab. Please try again.';
         this.notificationService.showError(msg, 'Authentication Failed');
       }
     });

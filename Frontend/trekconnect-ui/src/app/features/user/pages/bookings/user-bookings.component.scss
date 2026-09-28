@@ -144,6 +144,7 @@
       display: flex;
       align-items: center;
       gap: 0.75rem;
+      cursor: pointer;
       .qr-icon { font-size: 2rem; color: var(--primary); }
       .pass-id { display: block; font-size: 0.85rem; font-weight: 800; color: #fff; }
       .pass-sub { display: block; font-size: 0.78rem; color: var(--text-secondary); }
@@ -164,6 +165,45 @@
 
       &:hover { background: #ef4444; color: #fff; }
     }
+
+    .booking-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+
+      .view-pass-btn {
+        padding: 0.5rem 1rem;
+        background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(6, 182, 212, 0.2) 100%);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        border-radius: 0.5rem;
+        color: #34d399;
+        font-size: 0.82rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: #10b981;
+          color: #000000;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+      }
+    }
+  }
+}
+
+.clickable-qr {
+  background: #ffffff;
+  padding: 0.2rem;
+  border-radius: 0.35rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: scale(1.1);
   }
 }
 
@@ -175,7 +215,231 @@
   border-radius: 1.25rem;
 
   .empty-icon { font-size: 3.5rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+  .loading-spinner { animation: spin 1s linear infinite; }
   h3 { font-size: 1.25rem; font-weight: 800; margin-bottom: 0.35rem; }
   p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; }
   .explore-btn { padding: 0.65rem 1.5rem; background: var(--primary); border: none; border-radius: 0.6rem; color: #000; font-weight: 800; cursor: pointer; &:hover { background: var(--primary-hover); } }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* POPUP PASS MODAL STYLES */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.pass-modal-card {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.98) 0%, rgba(15, 23, 42, 0.99) 100%);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  border-radius: 1.25rem;
+  width: 100%;
+  max-width: 540px;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  padding: 1.75rem;
+  position: relative;
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.7);
+
+  .close-modal-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+    color: #94a3b8;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+
+    &:hover { background: rgba(255, 255, 255, 0.2); color: #fff; }
+  }
+
+  .pass-modal-header {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.25rem;
+    padding-right: 2rem;
+
+    .brand-badge {
+      font-weight: 800;
+      color: #10b981;
+      font-size: 1.15rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-chip {
+      background: rgba(245, 158, 11, 0.2);
+      color: #f59e0b;
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 800;
+
+      &.confirmed {
+        background: rgba(16, 185, 129, 0.2);
+        color: #34d399;
+      }
+    }
+  }
+
+  .pass-modal-body {
+    flex: 1;
+    overflow-y: auto;
+    padding-right: 0.35rem;
+
+    &::-webkit-scrollbar {
+      width: 6px;
+    }
+    &::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 9999px;
+    }
+    &::-webkit-scrollbar-thumb {
+      background: rgba(16, 185, 129, 0.4);
+      border-radius: 9999px;
+    }
+
+    .pass-title-row {
+      margin-bottom: 1.25rem;
+      h3 { font-size: 1.35rem; font-weight: 800; color: #ffffff; margin-bottom: 0.25rem; }
+      .pass-trek-name { color: #94a3b8; font-size: 0.9rem; }
+    }
+
+    .pass-details-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      background: rgba(17, 24, 39, 0.6);
+      border-radius: 0.85rem;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+
+      .detail-box {
+        display: flex;
+        flex-direction: column;
+
+        &.full { grid-column: span 2; }
+
+        .lbl { font-size: 0.72rem; color: #64748b; text-transform: uppercase; margin-bottom: 0.2rem; }
+        .val { font-weight: 700; font-size: 0.95rem; color: #e2e8f0; }
+        .price-highlight { color: #34d399; font-weight: 800; }
+        .code-val code { background: rgba(0, 0, 0, 0.4); padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.8rem; color: #67e8f9; }
+      }
+    }
+
+    .pass-qr-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.75rem;
+
+      .qr-box {
+        background: #ffffff;
+        padding: 0.75rem;
+        border-radius: 1rem;
+        box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+
+        .large-qr-img {
+          width: 170px;
+          height: 170px;
+          display: block;
+          object-fit: contain;
+        }
+      }
+
+      .qr-instruction {
+        font-size: 0.82rem;
+        color: #94a3b8;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+    }
+  }
+
+  .pass-modal-footer {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: flex-end;
+
+    .close-pass-btn {
+      padding: 0.65rem 1.5rem;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 0.6rem;
+      color: #ffffff;
+      font-weight: 700;
+      cursor: pointer;
+      &:hover { background: rgba(255, 255, 255, 0.2); }
+    }
+  }
+}
+
+/* RESPONSIVE MEDIA QUERIES */
+@media (max-width: 768px) {
+  .bookings-container {
+    padding: 0 1rem;
+    margin-top: 1.5rem;
+  }
+
+  .booking-card {
+    padding: 1.25rem !important;
+
+    .booking-card-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .booking-card-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+
+      .booking-card-actions {
+        width: 100%;
+
+        .view-pass-btn, .cancel-btn {
+          flex: 1;
+          justify-content: center;
+        }
+      }
+    }
+  }
+
+  .pass-modal-card {
+    width: 95% !important;
+    padding: 1.25rem !important;
+    max-height: 90vh;
+    overflow-y: auto;
+
+    .pass-details-grid {
+      grid-template-columns: 1fr !important;
+
+      .detail-box.full { grid-column: span 1 !important; }
+    }
+  }
 }

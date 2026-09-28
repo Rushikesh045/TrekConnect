@@ -16,7 +16,6 @@ public class UpdateProfileRequest {
     @Pattern(regexp = "^$|^[0-9+\\-\\s]{8,15}$", message = "Please enter a valid phone number")
     private String phone;
 
-    @Size(max = 500, message = "Profile picture URL must be less than 500 characters")
     private String profilePicUrl;
 
     @Size(max = 1000, message = "Bio must be less than 1000 characters")

@@ -77,4 +77,10 @@ public class AdminController {
         AdminDashboardStatsResponse response = adminService.getDashboardStats();
         return ResponseEntity.ok(response);
     }
+
+    @GetMapping("/users")
+    public ResponseEntity<List<com.trekconnect.core.dto.response.RegisteredUserResponse>> getAllRegisteredUsers() {
+        List<com.trekconnect.core.dto.response.RegisteredUserResponse> response = adminService.getAllRegisteredUsers();
+        return ResponseEntity.ok(response);
+    }
 }

@@ -50,6 +50,7 @@ export interface CreateEventRequest {
   eventDate: string;
   price: number;
   capacityTotal: number;
+  imageUrl?: string;
 }
 
 export interface UpdateEventRequest {
@@ -99,5 +100,9 @@ export class OrganizerEventService {
 
   addEventMedia(eventId: string, req: AddEventMediaRequest): Observable<EventMediaResponse> {
     return this.http.post<EventMediaResponse>(`${this.apiUrl}/events/${eventId}/media`, req);
+  }
+
+  deleteEvent(eventId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/events/${eventId}`);
   }
 }

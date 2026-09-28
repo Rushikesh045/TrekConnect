@@ -31,46 +31,149 @@
         <i [class]="existingApplication.verificationStatus === 'VERIFIED' ? 'ri-checkbox-circle-fill' : existingApplication.verificationStatus === 'REJECTED' ? 'ri-close-circle-fill' : 'ri-time-fill'"></i>
         <div>
           <h3>Application Status: {{ existingApplication.verificationStatus }}</h3>
-          <p>Submitted for <strong>{{ existingApplication.organizationName }}</strong></p>
+          <p>Organization: <strong>{{ existingApplication.organizationName }}</strong> • Base: <strong>{{ existingApplication.cityLocation || 'N/A' }}</strong></p>
         </div>
       </div>
 
       <div class="status-body" *ngIf="existingApplication.verificationStatus === 'PENDING'">
-        <p>Your application is currently under review by our Admin verification team. We will notify you once approved!</p>
+        <p>Your application for <strong>{{ existingApplication.organizationName }}</strong> is currently under review by our Admin verification team. You cannot submit multiple organizations under a single user account.</p>
       </div>
+      
       <div class="status-body" *ngIf="existingApplication.verificationStatus === 'VERIFIED'">
-        <p>Congratulations! Your organizer account is active. You can now access the Organizer Dashboard to post treks.</p>
+        <p>Congratulations! Your account is registered and verified for <strong>{{ existingApplication.organizationName }}</strong>. You are already an active organizer and cannot create a secondary organization.</p>
+        <div class="dashboard-action-wrapper">
+          <a routerLink="/organizer/dashboard" class="submit-btn dashboard-link-btn">
+            <i class="ri-dashboard-line"></i> Access Organizer Dashboard
+          </a>
+        </div>
       </div>
+
       <div class="status-body" *ngIf="existingApplication.verificationStatus === 'REJECTED'">
         <p class="rejection-reason"><strong>Reason for rejection:</strong> {{ existingApplication.rejectionReason || 'Documents missing or unverified.' }}</p>
-        <p>You can update your organization details and resubmit below.</p>
+        <p>You can update your organization details below and resubmit your existing application.</p>
       </div>
     </div>
 
-    <!-- Application Form Card -->
-    <div class="apply-form-card">
-      <h3 class="form-title"><i class="ri-article-line"></i> Organization Details</h3>
+    <!-- Application Form Card (Hidden if already VERIFIED or PENDING to prevent duplicate creation) -->
+    <div class="apply-form-card" *ngIf="!existingApplication || existingApplication.verificationStatus === 'REJECTED'">
+      <h3 class="form-title"><i class="ri-article-line"></i> Trek Organization Business Details</h3>
 
       <form [formGroup]="applyForm" (ngSubmit)="onSubmit()">
-        <div class="form-group">
-          <label for="organizationName">Trek Organization / Business Name <span class="required">*</span></label>
-          <input 
-            type="text" 
-            id="organizationName" 
-            formControlName="organizationName" 
-            placeholder="e.g. Sahyadri Wanderers Adventures & Treks" 
-          />
+        
+        <div class="form-row form-grid-row">
+          <!-- 1. Organization Name -->
+          <div class="form-group">
+            <label for="organizationName">Organization / Agency Name <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="organizationName" 
+              formControlName="organizationName" 
+              placeholder="e.g. Sahyadri Expeditions & Adventures" 
+            />
+          </div>
+
+          <!-- 2. Business Contact Phone -->
+          <div class="form-group">
+            <label for="contactPhone">Business Contact Phone <span class="required">*</span></label>
+            <input 
+              type="tel" 
+              id="contactPhone" 
+              formControlName="contactPhone" 
+              placeholder="e.g. +91 98765 43210" 
+            />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="verificationDocsUrl">Verification Documents URL (GSTIN / Govt ID / Certificate)</label>
-          <input 
-            type="text" 
-            id="verificationDocsUrl" 
-            formControlName="verificationDocsUrl" 
-            placeholder="https://example.com/docs/gstin-certificate.pdf" 
-          />
-          <small class="help-text">Provide a link to your organization registration certificate or identity proof for fast verification.</small>
+        <div class="form-row form-grid-row">
+          <!-- 3. Operating City / Base Location -->
+          <div class="form-group">
+            <label for="cityLocation">Operating City / Base Location <span class="required">*</span></label>
+            <input 
+              type="text" 
+              id="cityLocation" 
+              formControlName="cityLocation" 
+              placeholder="e.g. Pune / Mumbai / Nashik, Maharashtra" 
+            />
+          </div>
+
+          <!-- 4. GSTIN / Government Reg / License Number -->
+          <div class="form-group">
+            <label for="licenseNumber">GSTIN / Govt Registration / License No. <span class="optional">(Optional)</span></label>
+            <input 
+              type="text" 
+              id="licenseNumber" 
+              formControlName="licenseNumber" 
+              placeholder="e.g. 27ABCDE1234F1Z5 or REG-2024-889" 
+            />
+          </div>
+        </div>
+
+        <!-- 5. Dual Option Document Submission: Local File Upload or Web URL -->
+        <div class="form-group doc-upload-group">
+          <label>Verification KYC Documents (GSTIN Certificate / Govt ID / Registration PDF)</label>
+          
+          <!-- Option Source Selector Tabs -->
+          <div class="source-toggle-tabs">
+            <button 
+              type="button" 
+              class="tab-btn" 
+              [class.active]="docSourceType === 'LOCAL'" 
+              (click)="setDocSourceType('LOCAL')"
+            >
+              <i class="ri-upload-cloud-2-line"></i> Upload from Local Computer (PDF / Image)
+            </button>
+            <button 
+              type="button" 
+              class="tab-btn" 
+              [class.active]="docSourceType === 'URL'" 
+              (click)="setDocSourceType('URL')"
+            >
+              <i class="ri-link-m"></i> Provide Web URL Link
+            </button>
+          </div>
+
+          <!-- OPTION A: LOCAL FILE UPLOADER (PDF / JPG / PNG / SVG) -->
+          <div class="local-file-box" *ngIf="docSourceType === 'LOCAL'">
+            <div class="file-dropzone" *ngIf="!uploadedFileName">
+              <i class="ri-file-upload-line drop-icon"></i>
+              <div class="drop-text">
+                <span class="primary-text">Click to choose a KYC document from your computer</span>
+                <span class="sub-text">Supports PDF, PNG, JPG, JPEG, SVG documents (Max 10MB)</span>
+              </div>
+              <input 
+                type="file" 
+                class="hidden-file-input" 
+                accept=".pdf,.png,.jpg,.jpeg,.svg" 
+                (change)="onLocalFileSelected($event)" 
+              />
+            </div>
+
+            <!-- Uploaded File Preview Card -->
+            <div class="file-preview-card" *ngIf="uploadedFileName">
+              <div class="file-icon-badge">
+                <i [class]="uploadedFileName.endsWith('.pdf') ? 'ri-file-pdf-fill pdf-color' : 'ri-image-2-fill img-color'"></i>
+              </div>
+              <div class="file-info-details">
+                <span class="file-name">{{ uploadedFileName }}</span>
+                <span class="file-size">{{ uploadedFileSize }} • Ready to Submit</span>
+              </div>
+              <button type="button" class="remove-file-btn" (click)="removeSelectedFile()" title="Remove file">
+                <i class="ri-delete-bin-line"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- OPTION B: WEB URL INPUT -->
+          <div class="url-input-box" *ngIf="docSourceType === 'URL'">
+            <input 
+              type="url" 
+              id="verificationDocsUrl" 
+              formControlName="verificationDocsUrl" 
+              placeholder="https://example.com/docs/gstin-certificate.pdf" 
+            />
+            <small class="help-text">Paste a direct HTTPS link to your hosted PDF or image document.</small>
+          </div>
+
         </div>
 
         <div class="form-actions">

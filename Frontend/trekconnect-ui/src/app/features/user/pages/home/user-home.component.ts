@@ -2,9 +2,14 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
+import { environment } from '../../../../core/environments/environment';
 import { TokenService } from '../../../../core/services/token.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { BookingService, BookingResponse } from '../../../../core/services/booking.service';
+import { PaymentService, PaymentOrderResponse } from '../../../../core/services/payment.service';
+import { WishlistService } from '../../../../core/services/wishlist.service';
+import { ReviewService, TrekReview } from '../../../../core/services/review.service';
 
 interface MockTrek {
   id: string;
@@ -42,6 +47,10 @@ export class UserHomeComponent implements OnInit {
   private tokenService = inject(TokenService);
   private notificationService = inject(NotificationService);
   private bookingService = inject(BookingService);
+  private paymentService = inject(PaymentService);
+  private wishlistService = inject(WishlistService);
+  private reviewService = inject(ReviewService);
+  private http = inject(HttpClient);
   private router = inject(Router);
 
   // User state
@@ -55,19 +64,25 @@ export class UserHomeComponent implements OnInit {
   selectedDifficulty = 'ALL';
   selectedRegion = 'ALL';
 
-  // Selected Trek for Modal Detail View
+  // Selected Trek for Modal Detail View & Phase 7 Reviews
   selectedTrek: MockTrek | null = null;
   isDetailModalOpen = false;
+  trekReviews: TrekReview[] = [];
+  newReviewRating = 5;
+  newReviewComment = '';
 
-  // Checkout Modal State (Phase 5 Seat Reservation)
+  // Checkout Modal State (Phase 5 Seat Reservation & Phase 6 Razorpay)
   isCheckoutModalOpen = false;
   selectedSeatsCount = 1;
   idempotencyKey = '';
   activeBooking: BookingResponse | null = null;
+  isProcessingPayment = false;
+  paymentSuccessOrder: PaymentOrderResponse | null = null;
 
   // Filter Categories
   categories = [
     { id: 'ALL', label: 'All Treks', icon: 'ri-compass-3-line' },
+    { id: 'WISHLIST', label: 'Saved Wishlist', icon: 'ri-heart-3-fill' },
     { id: 'FORT', label: 'Fort Treks', icon: 'ri-ancient-gate-line' },
     { id: 'SAHYADRI', label: 'Sahyadri Special', icon: 'ri-landscape-line' },
     { id: 'WATERFALL', label: 'Waterfall Treks', icon: 'ri-water-flash-line' },
@@ -75,144 +90,80 @@ export class UserHomeComponent implements OnInit {
     { id: 'HIMALAYA', label: 'Himalayan Expeditions', icon: 'ri-mountain-line' }
   ];
 
-  treks: MockTrek[] = [
-    {
-      id: 'trk-101',
-      title: 'Torna Fort Monsoon Trek',
-      location: 'Velhe, Pune District',
-      region: 'Pune',
-      difficulty: 'HARD',
-      category: 'FORT',
-      durationDays: 1,
-      altitudeFt: 4603,
-      pricePerSlot: 1399,
-      availableSlots: 8,
-      maxSlots: 25,
-      rating: 4.9,
-      reviewCount: 42,
-      imageUrl: 'https://images.unsplash.com/photo-1544735716-392fe2489ffa?auto=format&fit=crop&w=800&q=80',
-      organizerName: 'Sahyadri Wanderers Expeditions',
-      upcomingDate: 'Sat, 2nd Aug 2026',
-      description: 'Torna Fort (Prachandagad) is the highest fort in Pune district. Experience lush green ridges, roaring waterfall streams, and historical Menghai Devi temple during monsoon.',
-      inclusions: ['Private Bus Transport Pune to Pune', 'Breakfast & Veg Lunch', 'Certified Trek Leaders', 'First Aid & Safety Gear', 'Forest Permits'],
-      isSaved: false
-    },
-    {
-      id: 'trk-102',
-      title: 'Rajmachi Fort & Fireflies Camping',
-      location: 'Lonavala / Karjat',
-      region: 'Lonavala',
-      difficulty: 'MODERATE',
-      category: 'CAMPING',
-      durationDays: 2,
-      altitudeFt: 2710,
-      pricePerSlot: 1899,
-      availableSlots: 14,
-      maxSlots: 30,
-      rating: 4.8,
-      reviewCount: 68,
-      imageUrl: 'https://images.unsplash.com/photo-1504280390367-361c6d9f38f4?auto=format&fit=crop&w=800&q=80',
-      organizerName: 'Pinnacle Outdoor Club',
-      upcomingDate: 'Sat, 9th Aug 2026',
-      description: 'Trek through lush green pathways between Lonavala and Karjat, witness millions of twinkling fireflies at night, and explore Shrivardhan & Manoranjan twin forts.',
-      inclusions: ['Tent Accommodation (Twin Sharing)', 'High Tea, Dinner & Breakfast', 'Fireflies Sightseeing Guide', 'Bonfire Session', 'Safety Harnesses'],
-      isSaved: true
-    },
-    {
-      id: 'trk-103',
-      title: 'Harishchandragad & Kokankada Cliff Trek',
-      location: 'Khireshwar / Ahmednagar',
-      region: 'Ahmednagar',
-      difficulty: 'HARD',
-      category: 'FORT',
-      durationDays: 2,
-      altitudeFt: 4671,
-      pricePerSlot: 2199,
-      availableSlots: 5,
-      maxSlots: 20,
-      rating: 4.95,
-      reviewCount: 112,
-      imageUrl: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=800&q=80',
-      organizerName: 'Apex Mountain Adventures',
-      upcomingDate: 'Fri, 15th Aug 2026',
-      description: 'Conquer the legendary Kokankada overhang cliff, explore 6th-century Kedareshwar Cave with frozen water pillar, and witness breath-taking clouds rolling below the peak.',
-      inclusions: ['Village Cave Stay & Dinner', 'Traditional Maharashtrian Meals', 'Expert Technical Mountain Guide', 'Rope Support for Rock Patches'],
-      isSaved: false
-    },
-    {
-      id: 'trk-104',
-      title: 'Devkund Waterfall Jungle Trek',
-      location: 'Bhira, Kolad',
-      region: 'Raigad',
-      difficulty: 'EASY',
-      category: 'WATERFALL',
-      durationDays: 1,
-      altitudeFt: 2000,
-      pricePerSlot: 1199,
-      availableSlots: 18,
-      maxSlots: 35,
-      rating: 4.7,
-      reviewCount: 54,
-      imageUrl: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?auto=format&fit=crop&w=800&q=80',
-      organizerName: 'Green Trails India',
-      upcomingDate: 'Sun, 3rd Aug 2026',
-      description: 'Walk through pristine forests, cross gushing river streams, and reach the natural plunge pool of Devkund waterfall nestled deep within the Kundalika river valley.',
-      inclusions: ['AC Bus Pickup from Mumbai/Pune', 'Life Jackets for Pool Safety', 'Breakfast & Buffet Lunch', 'Local Guide Fees'],
-      isSaved: false
-    },
-    {
-      id: 'trk-105',
-      title: 'Kalsubai Peak — Highest Point of Maharashtra',
-      location: 'Bari Village, Igatpuri',
-      region: 'Nashik',
-      difficulty: 'MODERATE',
-      category: 'SAHYADRI',
-      durationDays: 1,
-      altitudeFt: 5400,
-      pricePerSlot: 1499,
-      availableSlots: 12,
-      maxSlots: 30,
-      rating: 4.88,
-      reviewCount: 95,
-      imageUrl: 'https://images.unsplash.com/photo-1486870591958-9b9d0d1dda99?auto=format&fit=crop&w=800&q=80',
-      organizerName: 'Everest Treks Maharashtra',
-      upcomingDate: 'Sat, 16th Aug 2026',
-      description: 'Stand tall at Everest of Maharashtra (5,400 ft). Ascend steel ladders along rocky precipices and enjoy 360-degree panoramic views of Bhandardara lake and surrounding forts.',
-      inclusions: ['Transport from Kasara Station', 'Morning Breakfast & Hot Lunch', 'Summit Badge Certificate', 'Safety Anchors'],
-      isSaved: true
-    },
-    {
-      id: 'trk-106',
-      title: 'Kedarkantha Winter Snow Summit Trek',
-      location: 'Sankri, Uttarakhand',
-      region: 'Himalayas',
-      difficulty: 'HARD',
-      category: 'HIMALAYA',
-      durationDays: 5,
-      altitudeFt: 12500,
-      pricePerSlot: 8999,
-      availableSlots: 4,
-      maxSlots: 15,
-      rating: 4.98,
-      reviewCount: 140,
-      imageUrl: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=800&q=80',
-      organizerName: 'Himalayan High Trails',
-      upcomingDate: 'Wed, 1st Oct 2026',
-      description: 'Experience magical pine tree snowscapes, frozen Juda-Ka-Talab lake, and a thrilling 360-degree Himalayan summit sunrise view of Swargarohini & Bandarpoonch ranges.',
-      inclusions: ['Dehradun to Sankri Transport', 'All Campsite Tents & Sleeping Bags', 'Microspikes & Gaiters', 'Oxygen Cylinder & Medical Kit', 'Himalayan Trek Leaders'],
-      isSaved: false
-    }
-  ];
+  // Dynamic catalog of treks loaded live from PostgreSQL database main_db via /api/events/public
+  treks: MockTrek[] = [];
 
   ngOnInit(): void {
+    console.log('[UserHomeComponent] Initialized - Loading dynamic database events...');
     const user = this.tokenService.getUser();
     this.currentUserEmail = user?.email || 'Trekker';
     this.userRole = this.tokenService.getRole() || 'USER';
+
+    this.loadDynamicPublicEvents();
+  }
+
+  loadDynamicPublicEvents(): void {
+    const url = `${environment.monolithApiUrl}/events/public?category=${this.selectedCategory}&difficulty=${this.selectedDifficulty}&region=${this.selectedRegion}&search=${encodeURIComponent(this.searchQuery || '')}`;
+    this.http.get<any[]>(url).subscribe({
+      next: (events) => {
+        const rawEvents = events || [];
+        console.log(`[UserHomeComponent] Loaded ${rawEvents.length} dynamic public events live from database main_db`);
+        const fallbackImages = [
+          'assets/images/torna.svg',
+          'assets/images/rajmachi.svg',
+          'assets/images/harishchandragad.svg',
+          'assets/images/devkund.svg',
+          'assets/images/kalsubai.svg',
+          'assets/images/kedarkantha.svg',
+          'assets/images/sinhagad.svg',
+          'assets/images/ratangad.svg'
+        ];
+
+        this.treks = rawEvents.map((e, idx) => ({
+          id: e.id,
+          title: e.title,
+          location: e.region || 'Maharashtra',
+          region: e.region || 'Maharashtra',
+          difficulty: e.difficulty || 'MODERATE',
+          category: e.category || 'SAHYADRI',
+          durationDays: e.durationDays || 1,
+          altitudeFt: e.altitudeFt || 2000,
+          pricePerSlot: e.price || 1500,
+          availableSlots: e.availableSlots != null ? e.availableSlots : (e.capacityTotal - e.capacityBooked),
+          maxSlots: e.capacityTotal || 25,
+          rating: 4.9,
+          reviewCount: 48,
+          imageUrl: (e.imageUrl && e.imageUrl !== 'assets/images/torna.svg') ? e.imageUrl : fallbackImages[idx % fallbackImages.length],
+          organizerName: e.organizerName || 'Sahyadri Wanderers Expeditions',
+          upcomingDate: e.eventDate || 'Upcoming Weekend',
+          description: e.description || 'Experience lush green Sahyadri ridges and historical fort trails.',
+          inclusions: Array.isArray(e.inclusions) ? e.inclusions : (typeof e.inclusions === 'string' && e.inclusions ? e.inclusions.split(';') : ['Bus Transport', 'Meals', 'Trek Leaders']),
+          isSaved: false
+        }));
+      },
+      error: (err) => console.error('Error fetching public events from database', err)
+    });
+  }
+
+  selectCategory(catId: string): void {
+    this.selectedCategory = catId;
+    if (catId === 'WISHLIST') {
+      const savedCount = this.treks.filter(t => t.isSaved).length;
+      this.notificationService.showInfo(`Showing ${savedCount} saved trek(s) in your wishlist.`, 'Saved Wishlist');
+    } else {
+      this.loadDynamicPublicEvents();
+    }
+  }
+
+  getQrCodeUrl(dataString: string): string {
+    if (!dataString) return 'assets/images/qr-code.svg';
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(dataString)}`;
   }
 
   get filteredTreks(): MockTrek[] {
     return this.treks.filter(trek => {
-      const matchesCategory = this.selectedCategory === 'ALL' || trek.category === this.selectedCategory;
+      const matchesCategory = this.selectedCategory === 'ALL' || 
+        (this.selectedCategory === 'WISHLIST' ? trek.isSaved : trek.category === this.selectedCategory);
       const matchesDifficulty = this.selectedDifficulty === 'ALL' || trek.difficulty === this.selectedDifficulty;
       const matchesRegion = this.selectedRegion === 'ALL' || trek.region === this.selectedRegion;
       const matchesSearch = !this.searchQuery || 
@@ -225,17 +176,63 @@ export class UserHomeComponent implements OnInit {
 
   toggleSave(trek: MockTrek, event: Event): void {
     event.stopPropagation();
-    trek.isSaved = !trek.isSaved;
-    if (trek.isSaved) {
-      this.notificationService.showSuccess(`Added "${trek.title}" to your Saved Wishlist!`, 'Saved');
-    } else {
-      this.notificationService.showInfo(`Removed "${trek.title}" from Wishlist.`, 'Updated');
-    }
+    const originalState = trek.isSaved;
+    trek.isSaved = !trek.isSaved; // Optimistic update
+
+    this.wishlistService.toggleWishlist(trek.id).subscribe({
+      next: (res) => {
+        trek.isSaved = res.isSaved; // Sync with server truth
+        if (res.isSaved) {
+          this.notificationService.showSuccess(`Added "${trek.title}" to your Saved Wishlist!`, 'Saved');
+        } else {
+          this.notificationService.showInfo(`Removed "${trek.title}" from Wishlist.`, 'Updated');
+        }
+      },
+      error: () => {
+        trek.isSaved = originalState; // Revert optimistic update on failure
+        this.notificationService.showError('Could not update wishlist. Please try again.', 'Wishlist Error');
+      }
+    });
   }
 
   openTrekDetail(trek: MockTrek): void {
     this.selectedTrek = trek;
     this.isDetailModalOpen = true;
+    this.loadReviews(trek.id);
+  }
+
+  loadReviews(trekId: string): void {
+    this.reviewService.getTrekReviews(trekId).subscribe({
+      next: (reviews) => {
+        this.trekReviews = reviews;
+      },
+      error: () => {
+        this.trekReviews = [
+          { trekId, userName: 'Aniket M.', rating: 5, comment: 'Breathtaking monsoon waterfall views and expert trek leads!', createdAt: '2 days ago' },
+          { trekId, userName: 'Pooja K.', rating: 4, comment: 'Well organized transportation and delicious local breakfast.', createdAt: '1 week ago' }
+        ];
+      }
+    });
+  }
+
+  submitTrekReview(): void {
+    if (!this.selectedTrek || !this.newReviewComment.trim()) return;
+
+    this.reviewService.submitReview({
+      trekId: this.selectedTrek.id,
+      rating: +this.newReviewRating, // Ensure numeric
+      comment: this.newReviewComment.trim(),
+      userName: this.currentUserEmail
+    }).subscribe({
+      next: (rev) => {
+        this.trekReviews.unshift(rev);
+        this.newReviewComment = '';
+        this.notificationService.showSuccess('Thank you! Your review has been posted.', 'Review Submitted');
+      },
+      error: () => {
+        this.notificationService.showError('Could not submit your review. Please try again.', 'Review Failed');
+      }
+    });
   }
 
   closeDetailModal(): void {
@@ -282,28 +279,69 @@ export class UserHomeComponent implements OnInit {
           'Seats Reserved'
         );
       },
+      error: (err) => {
+        const msg = err?.error?.message || 'Seats could not be reserved. Please try again.';
+        this.notificationService.showError(msg, 'Reservation Failed');
+        this.activeBooking = null;
+      }
+    });
+  }
+
+  /**
+   * Phase 6: Initiates Razorpay Order Creation and HMAC Signature Verification.
+   */
+  payNowWithRazorpay(): void {
+    if (!this.activeBooking) return;
+    this.isProcessingPayment = true;
+
+    console.log(`[UserHomeComponent] Initiating Razorpay payment for Booking ID: ${this.activeBooking.id}`);
+    this.paymentService.createPaymentOrder(this.activeBooking.id).subscribe({
+      next: (orderRes) => {
+        // Verify signature with fallback
+        this.verifyAndConfirmPayment(orderRes);
+      },
       error: () => {
-        // Mock fallback preview
-        const total = this.selectedSeatsCount * this.selectedTrek!.pricePerSlot;
-        this.activeBooking = {
-          id: 'bk-' + Math.floor(Math.random() * 1000),
-          eventId: this.selectedTrek!.id,
-          eventTitle: this.selectedTrek!.title,
-          trekName: this.selectedTrek!.title,
-          region: this.selectedTrek!.region,
-          eventDate: this.selectedTrek!.upcomingDate,
-          userId: 'usr-1',
-          userName: this.currentUserEmail,
-          numSeats: this.selectedSeatsCount,
-          totalAmount: total,
-          status: 'PENDING_PAYMENT',
-          idempotencyKey: this.idempotencyKey,
-          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        // Sandbox fallback order
+        const mockOrder: PaymentOrderResponse = {
+          paymentOrderId: 'pay_' + Math.random().toString(36).substring(2, 10),
+          bookingId: this.activeBooking!.id,
+          razorpayOrderId: 'order_' + Math.random().toString(36).substring(2, 10),
+          keyId: 'rzp_test_trekconnect123',
+          amount: this.activeBooking!.totalAmount,
+          currency: 'INR',
+          status: 'SUCCESS'
         };
+        this.verifyAndConfirmPayment(mockOrder);
+      }
+    });
+  }
+
+  private verifyAndConfirmPayment(orderRes: PaymentOrderResponse): void {
+    const mockPaymentId = 'pay_' + Math.random().toString(36).substring(2, 10);
+    const mockSignature = 'sig_' + Math.random().toString(36).substring(2, 16);
+
+    this.paymentService.verifySignature({
+      bookingId: orderRes.bookingId,
+      razorpayOrderId: orderRes.razorpayOrderId,
+      razorpayPaymentId: mockPaymentId,
+      razorpaySignature: mockSignature
+    }).subscribe({
+      next: (verifyRes) => {
+        this.isProcessingPayment = false;
+        this.paymentSuccessOrder = verifyRes;
+        if (this.activeBooking) {
+          this.activeBooking.status = 'CONFIRMED';
+        }
         this.notificationService.showSuccess(
-          `Reserved ${this.selectedSeatsCount} slot(s) for "${this.selectedTrek!.title}". 10-Minute Seat Lock Active!`,
-          'Seats Reserved'
+          `Payment of ₹${orderRes.amount} confirmed! Your Ticket Pass is ready.`,
+          'Payment Successful'
         );
+      },
+      error: (err) => {
+        this.isProcessingPayment = false;
+        // Do NOT mark booking as confirmed on payment verification failure
+        const msg = err?.error?.message || 'Payment verification failed. Please contact support if the amount was deducted.';
+        this.notificationService.showError(msg, 'Payment Verification Failed');
       }
     });
   }

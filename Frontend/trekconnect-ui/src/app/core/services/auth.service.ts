@@ -11,7 +11,7 @@ import { TokenService } from './token.service';
  * WHY THIS SERVICE WAS CREATED:
  * Serves as the central API client for identity management.
  * Sends registration, login, refresh token, logout, and profile identity requests
- * to the Auth Microservice (http://localhost:8081/auth) and updates token storage signals.
+ * to the Auth Microservice (http://localhost:8080/auth) and updates token storage signals.
  */
 @Injectable({
   providedIn: 'root'
@@ -112,6 +112,10 @@ export class AuthService {
     return this.http.get<UserInfo>(`${this.baseUrl}/me`).pipe(
       tap(user => this.tokenService.saveUser(user))
     );
+  }
+
+  changePassword(currentPassword: string, newPassword: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/change-password`, { currentPassword, newPassword });
   }
 }
 

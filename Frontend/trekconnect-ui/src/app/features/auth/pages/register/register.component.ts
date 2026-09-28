@@ -62,10 +62,15 @@ export class RegisterComponent {
       next: (res) => {
         this.isLoading = false;
         this.notificationService.showSuccess(
-          `Welcome to TrekConnect, ${res.user.email}! Account created successfully.`,
+          `Welcome to TrekConnect, ${res.user.email}! Your account has been created successfully.`,
           'Registration Successful'
         );
-        this.router.navigate(['/browse']);
+        // Role-based redirect
+        if (res.user.role === 'ORGANIZER') {
+          this.router.navigate(['/organizer/dashboard']);
+        } else {
+          this.router.navigate(['/user/home']);
+        }
       },
       error: (err) => {
         this.isLoading = false;

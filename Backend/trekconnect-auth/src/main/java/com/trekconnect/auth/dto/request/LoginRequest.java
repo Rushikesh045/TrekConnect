@@ -1,5 +1,6 @@
 package com.trekconnect.auth.dto.request;
 
+import com.trekconnect.auth.entity.Role;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
@@ -14,16 +15,27 @@ public class LoginRequest {
 
     private String deviceInfo;
 
+    private Role role;
+
     public LoginRequest() {}
 
-    public LoginRequest(String email, String password, String deviceInfo) {
+    public LoginRequest(String email, String password, String deviceInfo, Role role) {
         this.email = email;
         this.password = password;
         this.deviceInfo = deviceInfo;
+        this.role = role;
     }
 
     public static LoginRequestBuilder builder() {
         return new LoginRequestBuilder();
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 
     public String getEmail() {
@@ -54,6 +66,7 @@ public class LoginRequest {
         private String email;
         private String password;
         private String deviceInfo;
+        private Role role;
 
         public LoginRequestBuilder email(String email) {
             this.email = email;
@@ -70,8 +83,13 @@ public class LoginRequest {
             return this;
         }
 
+        public LoginRequestBuilder role(Role role) {
+            this.role = role;
+            return this;
+        }
+
         public LoginRequest build() {
-            return new LoginRequest(email, password, deviceInfo);
+            return new LoginRequest(email, password, deviceInfo, role);
         }
     }
 }

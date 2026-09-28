@@ -27,7 +27,14 @@
       </div>
     </header>
 
-    <div class="bookings-grid" *ngIf="bookings.length > 0">
+    <!-- Loading State -->
+    <div class="empty-bookings-card" *ngIf="isLoading">
+      <i class="ri-loader-4-line empty-icon loading-spinner"></i>
+      <h3>Loading Your Bookings...</h3>
+      <p>Please wait while we fetch your trek reservations.</p>
+    </div>
+
+    <div class="bookings-grid" *ngIf="!isLoading && bookings.length > 0">
       <div class="booking-card" *ngFor="let b of bookings">
         
         <div class="card-top">
@@ -59,36 +66,107 @@
           </div>
 
           <div class="detail-col">
-            <span class="label">Booking Ref / Idempotency</span>
-            <span class="value code"><code>{{ b.idempotencyKey }}</code></span>
+            <span class="label">Booking Reference</span>
+            <span class="value code"><code>TC-REF-{{ (b.id ? b.id.substring(0, 8) : '--------').toUpperCase() }}</code></span>
           </div>
         </div>
 
         <!-- Digital Ticket Pass Footer -->
         <div class="card-footer">
-          <div class="ticket-pass-info">
-            <i class="ri-qr-code-line qr-icon"></i>
+          <div class="ticket-pass-info" (click)="openTicketPassModal(b)">
+            <img [src]="getQrCodeUrl('TrekConnect Ticket Pass #' + b.id + ' | User: ' + (b.userName || userEmail) + ' | Event: ' + b.eventTitle + ' | Seats: ' + b.numSeats + ' | Status: ' + b.status)" class="qr-img clickable-qr" alt="QR Code Pass" width="44" height="44" />
             <div>
-              <span class="pass-id">Pass ID: {{ b.id }}</span>
-              <span class="pass-sub">Show this QR pass to your Trek Organizer at departure</span>
+              <span class="pass-id">Ticket Ref: TC-{{ b.id.substring(0, 8).toUpperCase() }}</span>
+              <span class="pass-sub">Click to view Digital Entry Pass & Working QR</span>
             </div>
           </div>
 
-          <button *ngIf="b.status !== 'CANCELLED'" class="cancel-btn" (click)="cancelBooking(b)">
-            <i class="ri-close-circle-line"></i> Cancel Reservation
-          </button>
+          <div class="booking-card-actions">
+            <button class="view-pass-btn" (click)="openTicketPassModal(b)">
+              <i class="ri-qr-code-line"></i> View Digital Pass Ticket
+            </button>
+
+            <button *ngIf="b.status !== 'CANCELLED'" class="cancel-btn" (click)="cancelBooking(b)">
+              <i class="ri-close-circle-line"></i> Cancel
+            </button>
+          </div>
         </div>
 
       </div>
     </div>
 
-    <div class="empty-bookings-card" *ngIf="bookings.length === 0">
+    <div class="empty-bookings-card" *ngIf="!isLoading && bookings.length === 0">
       <i class="ri-ticket-line empty-icon"></i>
       <h3>No Bookings Found</h3>
-      <p>Explore upcoming trek batches and reserve your seats with high-concurrency 10-minute lock protection.</p>
+      <p>Explore upcoming trek batches and reserve your seats for your next Sahyadri adventure.</p>
       <button class="explore-btn" routerLink="/user/home">Browse Treks</button>
     </div>
 
   </main>
+
+  <!-- DIGITAL TICKET PASS POPUP MODAL -->
+  <div class="modal-backdrop" *ngIf="isPassModalOpen && selectedBookingForPass" (click)="closeTicketPassModal()">
+    <div class="modal-card pass-modal-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeTicketPassModal()"><i class="ri-close-line"></i></button>
+
+      <div class="pass-modal-header">
+        <div class="brand-badge"><i class="ri-compass-3-fill"></i> TrekConnect Pass</div>
+        <span class="status-chip" [class.confirmed]="selectedBookingForPass.status === 'CONFIRMED'">
+          {{ selectedBookingForPass.status }}
+        </span>
+      </div>
+
+      <div class="pass-modal-body">
+        <div class="pass-title-row">
+          <h3>{{ selectedBookingForPass.eventTitle }}</h3>
+          <p class="pass-trek-name"><i class="ri-map-pin-2-line"></i> {{ selectedBookingForPass.region || 'Maharashtra' }} • {{ selectedBookingForPass.trekName }}</p>
+        </div>
+
+        <div class="pass-details-grid">
+          <div class="detail-box">
+            <span class="lbl">Trekker Name</span>
+            <span class="val">{{ selectedBookingForPass.userName || userEmail }}</span>
+          </div>
+
+          <div class="detail-box">
+            <span class="lbl">Departure Date</span>
+            <span class="val">{{ selectedBookingForPass.eventDate || 'Upcoming Weekend' }}</span>
+          </div>
+
+          <div class="detail-box">
+            <span class="lbl">Seats Reserved</span>
+            <span class="val">{{ selectedBookingForPass.numSeats }} Slot(s)</span>
+          </div>
+
+          <div class="detail-box">
+            <span class="lbl">Total Amount</span>
+            <span class="val price-highlight">₹{{ selectedBookingForPass.totalAmount }}</span>
+          </div>
+
+          <div class="detail-box full">
+            <span class="lbl">Booking Reference Code</span>
+            <span class="val code-val"><code>TC-REF-{{ selectedBookingForPass.id.substring(0, 8).toUpperCase() }}</code></span>
+          </div>
+        </div>
+
+        <!-- Large Working QR Code View -->
+        <div class="pass-qr-container">
+          <div class="qr-box">
+            <img 
+              [src]="getQrCodeUrl('TrekConnect Official Ticket Pass #' + selectedBookingForPass.id + ' | User: ' + (selectedBookingForPass.userName || userEmail) + ' | Event: ' + selectedBookingForPass.eventTitle + ' | Seats: ' + selectedBookingForPass.numSeats + ' | Status: ' + selectedBookingForPass.status)" 
+              alt="Working Ticket Pass QR Code" 
+              class="large-qr-img"
+            />
+          </div>
+          <span class="qr-instruction"><i class="ri-scan-2-line"></i> Scan at Departure Gate for Entry Verification</span>
+        </div>
+      </div>
+
+      <div class="pass-modal-footer">
+        <button class="close-pass-btn" (click)="closeTicketPassModal()">Close Pass</button>
+      </div>
+
+    </div>
+  </div>
 
 </div>

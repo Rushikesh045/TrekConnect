@@ -74,4 +74,13 @@ public class OrganizerEventController {
         EventMediaResponse response = organizerEventService.addEventMedia(userId, id, request);
         return ResponseEntity.ok(response);
     }
+
+    @DeleteMapping("/events/{id}")
+    public ResponseEntity<Void> deleteEventBatch(
+            Authentication authentication,
+            @PathVariable("id") String id) {
+        String userId = (String) authentication.getPrincipal();
+        organizerEventService.deleteEventBatch(userId, id);
+        return ResponseEntity.noContent().build();
+    }
 }

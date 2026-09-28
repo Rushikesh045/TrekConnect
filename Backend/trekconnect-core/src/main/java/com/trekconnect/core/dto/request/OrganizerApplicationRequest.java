@@ -12,14 +12,22 @@ public class OrganizerApplicationRequest {
     @Size(min = 3, max = 200, message = "Organization name must be between 3 and 200 characters")
     private String organizationName;
 
-    @Size(max = 500, message = "Verification documents URL must be less than 500 characters")
+    private String contactPhone;
+
+    private String cityLocation;
+
+    private String licenseNumber;
+
     private String verificationDocsUrl;
 
     public OrganizerApplicationRequest() {
     }
 
-    public OrganizerApplicationRequest(String organizationName, String verificationDocsUrl) {
+    public OrganizerApplicationRequest(String organizationName, String contactPhone, String cityLocation, String licenseNumber, String verificationDocsUrl) {
         this.organizationName = organizationName;
+        this.contactPhone = contactPhone;
+        this.cityLocation = cityLocation;
+        this.licenseNumber = licenseNumber;
         this.verificationDocsUrl = verificationDocsUrl;
     }
 
@@ -29,6 +37,30 @@ public class OrganizerApplicationRequest {
 
     public void setOrganizationName(String organizationName) {
         this.organizationName = organizationName;
+    }
+
+    public String getContactPhone() {
+        return contactPhone;
+    }
+
+    public void setContactPhone(String contactPhone) {
+        this.contactPhone = contactPhone;
+    }
+
+    public String getCityLocation() {
+        return cityLocation;
+    }
+
+    public void setCityLocation(String cityLocation) {
+        this.cityLocation = cityLocation;
+    }
+
+    public String getLicenseNumber() {
+        return licenseNumber;
+    }
+
+    public void setLicenseNumber(String licenseNumber) {
+        this.licenseNumber = licenseNumber;
     }
 
     public String getVerificationDocsUrl() {

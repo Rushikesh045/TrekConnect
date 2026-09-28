@@ -29,39 +29,9 @@ export class UserBookingsComponent implements OnInit {
   userEmail = '';
   bookings: BookingResponse[] = [];
 
-  // Mock initial bookings if backend returns empty
-  mockBookings: BookingResponse[] = [
-    {
-      id: 'bk-801',
-      eventId: 'evt-101',
-      eventTitle: 'Monsoon Weekend Expedition to Rajmachi Fort',
-      trekName: 'Rajmachi Fort Trek',
-      region: 'Lonavala',
-      eventDate: '2026-08-15',
-      userId: 'usr-1',
-      userName: 'Trekker',
-      numSeats: 2,
-      totalAmount: 3700,
-      status: 'CONFIRMED',
-      idempotencyKey: 'idemp-901823',
-      createdAt: '2026-08-10T14:30:00'
-    },
-    {
-      id: 'bk-802',
-      eventId: 'evt-102',
-      eventTitle: 'High Altitude Challenge to Torna Fort',
-      trekName: 'Torna Fort Summit',
-      region: 'Velhe, Pune',
-      eventDate: '2026-08-22',
-      userId: 'usr-1',
-      userName: 'Trekker',
-      numSeats: 1,
-      totalAmount: 2200,
-      status: 'PENDING_PAYMENT',
-      idempotencyKey: 'idemp-901824',
-      createdAt: '2026-08-10T16:00:00'
-    }
-  ];
+  // Ticket Pass Modal State
+  selectedBookingForPass: BookingResponse | null = null;
+  isPassModalOpen = false;
 
   ngOnInit(): void {
     const user = this.tokenService.getUser();
@@ -74,24 +44,40 @@ export class UserBookingsComponent implements OnInit {
     this.bookingService.getMyBookings().subscribe({
       next: (res) => {
         this.isLoading = false;
-        this.bookings = (res && res.length > 0) ? res : this.mockBookings;
+        this.bookings = res || [];
       },
-      error: () => {
+      error: (err) => {
         this.isLoading = false;
-        this.bookings = this.mockBookings;
+        console.error('Error loading my bookings', err);
+        this.bookings = [];
       }
     });
+  }
+
+  getQrCodeUrl(dataString: string): string {
+    if (!dataString) return 'assets/images/qr-code.svg';
+    return `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(dataString)}`;
+  }
+
+  openTicketPassModal(booking: BookingResponse): void {
+    this.selectedBookingForPass = booking;
+    this.isPassModalOpen = true;
+  }
+
+  closeTicketPassModal(): void {
+    this.isPassModalOpen = false;
+    this.selectedBookingForPass = null;
   }
 
   cancelBooking(booking: BookingResponse): void {
     this.bookingService.cancelBooking(booking.id).subscribe({
       next: () => {
         booking.status = 'CANCELLED';
-        this.notificationService.showInfo(`Booking #${booking.id} cancelled. Reserved seats released.`, 'Booking Cancelled');
+        this.notificationService.showInfo(`Booking cancelled. Reserved seats have been released.`, 'Booking Cancelled');
       },
-      error: () => {
-        booking.status = 'CANCELLED';
-        this.notificationService.showInfo(`Booking #${booking.id} cancelled. Reserved seats released.`, 'Booking Cancelled');
+      error: (err) => {
+        const msg = err?.error?.message || 'Could not cancel this booking. Please try again or contact support.';
+        this.notificationService.showError(msg, 'Cancellation Failed');
       }
     });
   }

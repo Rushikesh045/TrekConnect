@@ -15,7 +15,7 @@ export const routes: Routes = [
     path: 'user/home',
     loadComponent: () => import('./features/user/pages/home/user-home.component').then(m => m.UserHomeComponent),
     canActivate: [authGuard],
-    data: { roles: ['USER'] }
+    data: { roles: ['USER', 'ORGANIZER', 'ADMIN'] }
   },
   {
     path: 'user/profile',
@@ -25,12 +25,14 @@ export const routes: Routes = [
   {
     path: 'user/bookings',
     loadComponent: () => import('./features/user/pages/bookings/user-bookings.component').then(m => m.UserBookingsComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: { roles: ['USER'] }
   },
   {
     path: 'organizer/apply',
     loadComponent: () => import('./features/user/pages/organizer-apply/organizer-apply.component').then(m => m.OrganizerApplyComponent),
-    canActivate: [authGuard]
+    canActivate: [authGuard],
+    data: { roles: ['USER'] }
   },
   {
     path: 'organizer/dashboard',
@@ -44,8 +46,8 @@ export const routes: Routes = [
     canActivate: [authGuard],
     data: { roles: ['ADMIN'] }
   },
-  { path: 'organizer', redirectTo: 'organizer/dashboard' },
-  { path: 'admin', redirectTo: 'admin/dashboard' },
-  { path: 'browse', redirectTo: 'user/home' },
+  { path: 'organizer', redirectTo: 'organizer/dashboard', pathMatch: 'full' },
+  { path: 'admin', redirectTo: 'admin/dashboard', pathMatch: 'full' },
+  { path: 'browse', redirectTo: 'user/home', pathMatch: 'full' },
   { path: '**', redirectTo: 'auth/login' }
 ];

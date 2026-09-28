@@ -4,12 +4,12 @@
   <!-- Navigation Header -->
   <nav class="top-navbar">
     <div class="nav-container">
-      <div class="brand-logo" routerLink="/user/home">
+      <div class="brand-logo" [routerLink]="backLink">
         <i class="ri-compass-3-fill logo-icon"></i>
         <span class="brand-title">TrekConnect</span>
       </div>
-      <a routerLink="/user/home" class="back-link">
-        <i class="ri-arrow-left-line"></i> Back to Explorer
+      <a [routerLink]="backLink" class="back-link">
+        <i class="ri-arrow-left-line"></i> {{ backLinkLabel }}
       </a>
     </div>
   </nav>
@@ -21,7 +21,7 @@
       <div class="header-avatar-section">
         <div class="avatar-circle">
           <img *ngIf="profileForm.get('profilePicUrl')?.value" [src]="profileForm.get('profilePicUrl')?.value" alt="Avatar" />
-          <i *ngIf="!profileForm.get('profilePicUrl')?.value" class="ri-user-3-fill"></i>
+          <img *ngIf="!profileForm.get('profilePicUrl')?.value" src="assets/images/default-avatar.svg" alt="Default Avatar" class="avatar-img" />
         </div>
         <div class="header-info">
           <h2 class="user-display-name">{{ profileForm.get('name')?.value || 'Trekker Explorer' }}</h2>
@@ -37,6 +37,54 @@
         <a routerLink="/organizer/apply" class="apply-organizer-btn" *ngIf="userRole === 'USER'">
           <i class="ri-award-line"></i> Apply to Become Organizer
         </a>
+      </div>
+    </div>
+
+    <!-- Digital User Identity & Working QR Pass Card -->
+    <div class="user-qr-card">
+      <div class="qr-card-header">
+        <div class="qr-title-box">
+          <i class="ri-qr-code-fill qr-icon"></i>
+          <div>
+            <h3>Digital Trekker ID & QR Member Pass</h3>
+            <p>Official verified member pass. Show this QR code to organizers during trek check-in.</p>
+          </div>
+        </div>
+        <span class="active-badge"><i class="ri-shield-check-line"></i> VERIFIED ACCOUNT</span>
+      </div>
+
+      <div class="qr-card-content">
+        <div class="member-qr-frame">
+          <img 
+            [src]="getQrCodeUrl('TrekConnect Verified Member | Email: ' + userEmail + ' | Role: ' + userRole + ' | User ID: ' + (profileData?.userId || 'usr-1'))" 
+            alt="Working User QR Pass" 
+            class="user-qr-img"
+          />
+        </div>
+
+        <div class="member-meta-info">
+          <div class="meta-item">
+            <span class="lbl">Member Name:</span>
+            <span class="val">{{ profileForm.get('name')?.value || 'Trekker Explorer' }}</span>
+          </div>
+
+          <div class="meta-item">
+            <span class="lbl">Registered Email:</span>
+            <span class="val">{{ userEmail }}</span>
+          </div>
+
+          <div class="meta-item">
+            <span class="lbl">Account Role:</span>
+            <span class="val role-highlight">{{ userRole }}</span>
+          </div>
+
+          <div class="meta-item">
+            <span class="lbl">Member Pass Status:</span>
+            <span class="val role-highlight">ACTIVE VERIFIED</span>
+          </div>
+
+          <p class="qr-hint"><i class="ri-scan-line"></i> Scannable by any mobile camera or TrekConnect organizer terminal scanner.</p>
+        </div>
       </div>
     </div>
 
@@ -57,9 +105,71 @@
             <input type="text" id="phone" formControlName="phone" placeholder="+91 98765 43210" />
           </div>
 
-          <div class="form-group full-width">
-            <label for="profilePicUrl">Profile Picture URL</label>
-            <input type="text" id="profilePicUrl" formControlName="profilePicUrl" placeholder="https://example.com/my-photo.jpg" />
+          <!-- Dual Option Avatar Upload: Local File or Web URL -->
+          <div class="form-group full-width avatar-upload-group">
+            <label>Profile Avatar / Picture Source</label>
+            
+            <div class="source-toggle-tabs">
+              <button 
+                type="button" 
+                class="tab-btn" 
+                [class.active]="avatarSourceType === 'LOCAL'" 
+                (click)="setAvatarSourceType('LOCAL')"
+              >
+                <i class="ri-upload-cloud-2-line"></i> Upload Photo from Computer
+              </button>
+              <button 
+                type="button" 
+                class="tab-btn" 
+                [class.active]="avatarSourceType === 'URL'" 
+                (click)="setAvatarSourceType('URL')"
+              >
+                <i class="ri-link-m"></i> Provide Photo Web URL
+              </button>
+            </div>
+
+            <!-- OPTION A: LOCAL IMAGE FILE UPLOADER -->
+            <div class="local-file-box" *ngIf="avatarSourceType === 'LOCAL'">
+              <div class="file-dropzone" *ngIf="!uploadedAvatarFileName && !profileForm.get('profilePicUrl')?.value">
+                <i class="ri-image-add-line drop-icon"></i>
+                <div class="drop-text">
+                  <span class="primary-text">Click to choose avatar photo from your computer</span>
+                  <span class="sub-text">Supports JPG, PNG, WEBP, SVG (Max 5MB)</span>
+                </div>
+                <input 
+                  type="file" 
+                  class="hidden-file-input" 
+                  accept="image/*" 
+                  (change)="onLocalAvatarSelected($event)" 
+                />
+              </div>
+
+              <!-- Uploaded Avatar Preview Card -->
+              <div class="file-preview-card" *ngIf="uploadedAvatarFileName || profileForm.get('profilePicUrl')?.value">
+                <div class="avatar-thumbnail">
+                  <img [src]="profileForm.get('profilePicUrl')?.value" alt="Selected Avatar Preview" />
+                </div>
+                <div class="file-info-details">
+                  <span class="file-name">{{ uploadedAvatarFileName || 'Selected Avatar Photo' }}</span>
+                  <span class="file-size">{{ uploadedAvatarFileSize || 'Custom Avatar Active' }}</span>
+                </div>
+                <button type="button" class="remove-file-btn" (click)="removeSelectedAvatar()" title="Remove avatar">
+                  <i class="ri-delete-bin-line"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- OPTION B: WEB URL INPUT -->
+            <div class="url-input-box" *ngIf="avatarSourceType === 'URL'">
+              <input 
+                type="text" 
+                id="profilePicUrl" 
+                formControlName="profilePicUrl" 
+                placeholder="https://example.com/my-photo.jpg" 
+              />
+              <small class="help-text">Paste a direct HTTPS image URL for your profile avatar.</small>
+            </div>
+
           </div>
 
           <div class="form-group full-width">

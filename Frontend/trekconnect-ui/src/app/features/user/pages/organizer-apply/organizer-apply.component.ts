@@ -29,10 +29,48 @@ export class OrganizerApplyComponent implements OnInit {
   isSubmitting = false;
   existingApplication: OrganizerApplicationResponse | null = null;
 
+  // Dual Document Option State: 'LOCAL' or 'URL'
+  docSourceType: 'LOCAL' | 'URL' = 'LOCAL';
+  uploadedFileName = '';
+  uploadedFileSize = '';
+  selectedFilePreview: string | null = null;
+
   applyForm = this.fb.group({
     organizationName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(200)]],
-    verificationDocsUrl: ['', [Validators.maxLength(500)]]
+    contactPhone: ['', [Validators.required]],
+    cityLocation: ['', [Validators.required]],
+    licenseNumber: [''],
+    verificationDocsUrl: ['', [Validators.maxLength(5000000)]] // Allow Base64 Data URLs as well as web URLs
   });
+
+  setDocSourceType(type: 'LOCAL' | 'URL'): void {
+    this.docSourceType = type;
+  }
+
+  onLocalFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (!input.files || input.files.length === 0) return;
+
+    const file = input.files[0];
+    this.uploadedFileName = file.name;
+    this.uploadedFileSize = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result as string;
+      this.selectedFilePreview = dataUrl;
+      this.applyForm.patchValue({ verificationDocsUrl: dataUrl });
+      this.notificationService.showSuccess(`Document "${file.name}" loaded successfully!`, 'File Selected');
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeSelectedFile(): void {
+    this.uploadedFileName = '';
+    this.uploadedFileSize = '';
+    this.selectedFilePreview = null;
+    this.applyForm.patchValue({ verificationDocsUrl: '' });
+  }
 
   ngOnInit(): void {
     this.checkApplicationStatus();
@@ -46,6 +84,9 @@ export class OrganizerApplyComponent implements OnInit {
         this.existingApplication = res;
         this.applyForm.patchValue({
           organizationName: res.organizationName,
+          contactPhone: res.contactPhone || '',
+          cityLocation: res.cityLocation || '',
+          licenseNumber: res.licenseNumber || '',
           verificationDocsUrl: res.verificationDocsUrl || ''
         });
       },
@@ -63,10 +104,13 @@ export class OrganizerApplyComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    const { organizationName, verificationDocsUrl } = this.applyForm.value;
+    const { organizationName, contactPhone, cityLocation, licenseNumber, verificationDocsUrl } = this.applyForm.value;
 
     this.organizerService.applyForOrganizer({
       organizationName: organizationName!,
+      contactPhone: contactPhone || undefined,
+      cityLocation: cityLocation || undefined,
+      licenseNumber: licenseNumber || undefined,
       verificationDocsUrl: verificationDocsUrl || undefined
     }).subscribe({
       next: (res) => {

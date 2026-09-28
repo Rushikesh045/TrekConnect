@@ -21,7 +21,7 @@ public class UserProfileService {
         this.userProfileRepository = userProfileRepository;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     public UserProfileResponse getProfile(String userId) {
         UserProfile profile = userProfileRepository.findById(userId)
                 .orElseGet(() -> {

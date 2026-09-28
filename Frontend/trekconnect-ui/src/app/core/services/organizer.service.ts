@@ -5,6 +5,9 @@ import { environment } from '../environments/environment';
 
 export interface OrganizerApplicationRequest {
   organizationName: string;
+  contactPhone?: string;
+  cityLocation?: string;
+  licenseNumber?: string;
   verificationDocsUrl?: string;
 }
 
@@ -12,6 +15,9 @@ export interface OrganizerApplicationResponse {
   id: string;
   userId: string;
   organizationName: string;
+  contactPhone?: string;
+  cityLocation?: string;
+  licenseNumber?: string;
   verificationStatus: string;
   verificationDocsUrl?: string;
   rejectionReason?: string;

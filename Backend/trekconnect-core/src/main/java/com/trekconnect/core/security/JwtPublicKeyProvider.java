@@ -2,7 +2,8 @@ package com.trekconnect.core.security;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -24,8 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
  * and caches it in memory.
  */
 @Component
-@Slf4j
 public class JwtPublicKeyProvider {
+
+    private static final Logger log = LoggerFactory.getLogger(JwtPublicKeyProvider.class);
 
     @Value("${auth.service.base-url:http://localhost:8081}")
     private String authServiceBaseUrl;

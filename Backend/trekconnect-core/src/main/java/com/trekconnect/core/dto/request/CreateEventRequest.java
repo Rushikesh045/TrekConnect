@@ -30,16 +30,27 @@ public class CreateEventRequest {
     @Min(value = 1, message = "Capacity must be at least 1 seat")
     private Integer capacityTotal;
 
+    private String imageUrl;
+
     public CreateEventRequest() {
     }
 
-    public CreateEventRequest(String trekId, String title, String description, LocalDate eventDate, BigDecimal price, Integer capacityTotal) {
+    public CreateEventRequest(String trekId, String title, String description, LocalDate eventDate, BigDecimal price, Integer capacityTotal, String imageUrl) {
         this.trekId = trekId;
         this.title = title;
         this.description = description;
         this.eventDate = eventDate;
         this.price = price;
         this.capacityTotal = capacityTotal;
+        this.imageUrl = imageUrl;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public String getTrekId() {

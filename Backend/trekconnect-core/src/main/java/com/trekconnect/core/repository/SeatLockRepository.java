@@ -16,5 +16,7 @@ public interface SeatLockRepository extends JpaRepository<SeatLock, String> {
 
     Optional<SeatLock> findByEventIdAndUserIdAndExpiresAtAfter(String eventId, String userId, LocalDateTime now);
 
+    List<SeatLock> findByEventId(String eventId);
+
     List<SeatLock> findByExpiresAtBefore(LocalDateTime now);
 }

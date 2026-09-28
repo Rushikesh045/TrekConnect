@@ -93,3 +93,10 @@ body {
 .animate-fade-in {
   animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
+
+/* Global Select Option Dropdown Contrast Fix */
+select option {
+  background-color: #111827 !important;
+  color: #f8fafc !important;
+  padding: 0.5rem;
+}

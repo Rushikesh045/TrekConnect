@@ -328,9 +328,11 @@
     min-width: 200px;
 
     label {
-      font-size: 0.75rem;
-      font-weight: 700;
-      color: #94a3b8;
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: #cbd5e1;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
       display: flex;
       align-items: center;
       gap: 0.35rem;
@@ -342,12 +344,18 @@
       width: 100%;
       padding: 0.7rem 1rem;
       background: rgba(30, 41, 59, 0.9);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
       border-radius: 0.75rem;
       color: #f8fafc;
       font-size: 0.9rem;
       font-weight: 600;
       cursor: pointer;
+
+      option {
+        background-color: #1e293b;
+        color: #f8fafc;
+        padding: 0.5rem;
+      }
 
       &:focus { outline: none; border-color: #10b981; }
     }
@@ -790,6 +798,89 @@
       .check-icon { color: #10b981; }
     }
   }
+
+  .reviews-section {
+    margin-top: 1.5rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+
+    .post-review-box {
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 0.85rem;
+      padding: 1rem;
+      margin-bottom: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+
+      .star-rating-select {
+        display: flex;
+        align-items: center;
+        gap: 0.65rem;
+
+        label { font-size: 0.8rem; color: #9CA3AF; font-weight: 700; }
+        select {
+          background: rgba(17, 24, 39, 0.8);
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 0.5rem;
+          color: #ffffff;
+          padding: 0.35rem 0.65rem;
+          font-size: 0.85rem;
+        }
+      }
+
+      textarea {
+        width: 100%;
+        background: rgba(17, 24, 39, 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 0.6rem;
+        color: #ffffff;
+        padding: 0.65rem;
+        font-size: 0.88rem;
+        &:focus { outline: none; border-color: var(--primary); }
+      }
+
+      .submit-review-btn {
+        align-self: flex-end;
+        padding: 0.45rem 1rem;
+        background: var(--primary);
+        border: none;
+        border-radius: 0.5rem;
+        color: #000000;
+        font-size: 0.82rem;
+        font-weight: 800;
+        cursor: pointer;
+
+        &:hover { background: var(--primary-hover); }
+      }
+    }
+
+    .reviews-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+
+      .review-card {
+        background: rgba(17, 24, 39, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+        border-radius: 0.65rem;
+        padding: 0.85rem;
+
+        .review-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 0.35rem;
+
+          .reviewer-name { font-size: 0.85rem; font-weight: 700; color: #ffffff; display: flex; align-items: center; gap: 0.35rem; i { color: var(--primary); } }
+          .review-rating { font-size: 0.8rem; font-weight: 800; color: #f59e0b; }
+        }
+
+        .review-comment { font-size: 0.85rem; color: #cbd5e1; margin: 0; line-height: 1.4; }
+      }
+    }
+  }
 }
 
 .modal-footer {
@@ -974,6 +1065,31 @@
       &:hover { color: #ffffff; border-color: rgba(255, 255, 255, 0.3); }
     }
 
+    .active-booking-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .razorpay-pay-btn {
+      padding: 0.65rem 1.35rem;
+      background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+      border: none;
+      border-radius: 0.6rem;
+      color: #ffffff;
+      font-size: 0.88rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      box-shadow: 0 4px 14px rgba(6, 182, 212, 0.4);
+      transition: all 0.2s ease;
+
+      &:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(6, 182, 212, 0.6); }
+      &:disabled { opacity: 0.6; cursor: not-allowed; }
+    }
+
     .confirm-publish-btn {
       padding: 0.65rem 1.35rem;
       background: var(--primary);
@@ -989,5 +1105,300 @@
 
       &:hover { background: var(--primary-hover); }
     }
+  }
+}
+
+/* 6. DIGITAL PASS TICKET STYLES */
+.nav-icon-btn.active {
+  background: rgba(16, 185, 129, 0.25) !important;
+  color: #10b981 !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
+}
+
+.digital-pass-card {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 1rem;
+  padding: 1.25rem;
+
+  .ticket-status-header {
+    text-align: center;
+    margin-bottom: 1.25rem;
+
+    .success-icon-badge {
+      font-size: 2.75rem;
+      color: #10b981;
+      margin-bottom: 0.25rem;
+    }
+
+    h3 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+    }
+
+    p {
+      color: #94a3b8;
+      font-size: 0.85rem;
+    }
+  }
+
+  .ticket-visual-box {
+    background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+    border: 2px dashed rgba(16, 185, 129, 0.4);
+    border-radius: 0.85rem;
+    padding: 1.25rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+
+    .ticket-top-banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 0.85rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      margin-bottom: 1rem;
+
+      .ticket-logo {
+        font-weight: 800;
+        color: #10b981;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .pass-verified-badge {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.3);
+        padding: 0.25rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.35rem;
+      }
+    }
+
+    .ticket-content-grid {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1.25rem;
+      align-items: center;
+
+      @media (max-width: 640px) {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+
+      .ticket-details-left {
+        .pass-event-title {
+          font-size: 1.1rem;
+          font-weight: 700;
+          color: #f8fafc;
+          margin-bottom: 0.25rem;
+        }
+
+        .pass-location {
+          color: #94a3b8;
+          font-size: 0.85rem;
+          margin-bottom: 0.85rem;
+        }
+
+        .pass-grid-info {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 0.75rem;
+
+          .info-cell {
+            display: flex;
+            flex-direction: column;
+
+            .cell-label {
+              font-size: 0.7rem;
+              text-transform: uppercase;
+              letter-spacing: 0.05em;
+              color: #64748b;
+            }
+
+            .cell-val {
+              font-weight: 600;
+              font-size: 0.88rem;
+              color: #e2e8f0;
+
+              &.price-val {
+                color: #34d399;
+                font-weight: 800;
+              }
+
+              &.code-val code {
+                background: rgba(0, 0, 0, 0.4);
+                padding: 0.15rem 0.4rem;
+                border-radius: 0.25rem;
+                font-family: monospace;
+                font-size: 0.78rem;
+                color: #67e8f9;
+              }
+            }
+          }
+        }
+      }
+
+      .ticket-qr-right {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.4rem;
+
+        .qr-frame {
+          background: #ffffff;
+          padding: 0.5rem;
+          border-radius: 0.75rem;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+
+          .working-qr-code-img {
+            width: 130px;
+            height: 130px;
+            display: block;
+            object-fit: contain;
+          }
+        }
+
+        .qr-scan-label {
+          font-size: 0.72rem;
+          color: #94a3b8;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 0.35rem;
+        }
+      }
+    }
+  }
+}
+
+/* ==========================================================================
+   RESPONSIVE MEDIA QUERIES FOR MOBILE, TABLET & SMALL SCREENS
+   ========================================================================== */
+
+@media (max-width: 992px) {
+  .top-navbar .nav-container {
+    padding: 0.75rem 1rem;
+  }
+
+  .catalog-section {
+    padding: 0 1rem;
+  }
+
+  .treks-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.25rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .top-navbar .nav-container {
+    flex-wrap: wrap;
+    gap: 0.75rem;
+
+    .brand-logo {
+      .logo-icon { font-size: 1.8rem; }
+      .brand-title { font-size: 1.15rem; }
+    }
+
+    .nav-search-bar {
+      order: 3;
+      width: 100%;
+      max-width: 100%;
+      margin-top: 0.25rem;
+    }
+
+    .nav-actions {
+      gap: 0.5rem;
+
+      .user-email-text {
+        display: none;
+      }
+    }
+  }
+
+  .hero-section {
+    padding: 2.5rem 1rem 2rem;
+
+    .hero-title {
+      font-size: 1.85rem;
+      line-height: 1.3;
+    }
+
+    .hero-description {
+      font-size: 0.92rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .hero-filter-bar {
+      flex-direction: column;
+      width: 100%;
+      padding: 1rem;
+
+      .filter-group {
+        width: 100%;
+        min-width: 100%;
+      }
+
+      .explore-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  .categories-filter-bar .category-pills-row {
+    padding-bottom: 0.5rem;
+  }
+
+  .catalog-section .section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .digital-pass-card .ticket-content-grid {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .treks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .trek-card {
+    .trek-card-media {
+      height: 180px;
+    }
+
+    .trek-card-content {
+      padding: 1rem;
+    }
+
+    .trek-card-footer {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.75rem;
+
+      .book-now-btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+
+  .nav-icon-btn {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
   }
 }

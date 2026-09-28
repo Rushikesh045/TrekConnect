@@ -37,6 +37,9 @@ public class OrganizerService {
 
         if (existing != null) {
             existing.setOrganizationName(request.getOrganizationName());
+            existing.setContactPhone(request.getContactPhone());
+            existing.setCityLocation(request.getCityLocation());
+            existing.setLicenseNumber(request.getLicenseNumber());
             if (request.getVerificationDocsUrl() != null) {
                 existing.setVerificationDocsUrl(request.getVerificationDocsUrl());
             }
@@ -49,6 +52,9 @@ public class OrganizerService {
         OrganizerDetails application = OrganizerDetails.builder()
                 .user(userProfile)
                 .organizationName(request.getOrganizationName())
+                .contactPhone(request.getContactPhone())
+                .cityLocation(request.getCityLocation())
+                .licenseNumber(request.getLicenseNumber())
                 .verificationDocsUrl(request.getVerificationDocsUrl())
                 .verificationStatus("PENDING")
                 .build();
@@ -70,6 +76,9 @@ public class OrganizerService {
                 .id(details.getId())
                 .userId(details.getUser().getUserId())
                 .organizationName(details.getOrganizationName())
+                .contactPhone(details.getContactPhone())
+                .cityLocation(details.getCityLocation())
+                .licenseNumber(details.getLicenseNumber())
                 .verificationStatus(details.getVerificationStatus())
                 .verificationDocsUrl(details.getVerificationDocsUrl())
                 .rejectionReason(details.getRejectionReason())

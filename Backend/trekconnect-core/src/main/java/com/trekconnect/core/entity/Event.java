@@ -35,6 +35,9 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "image_url", columnDefinition = "TEXT")
+    private String imageUrl;
+
     @Column(name = "event_date", nullable = false)
     private LocalDate eventDate;
 
@@ -66,12 +69,13 @@ public class Event {
     public Event() {
     }
 
-    public Event(String id, Trek trek, OrganizerDetails organizer, String title, String description, LocalDate eventDate, BigDecimal price, Integer capacityTotal, Integer capacityBooked, Integer version, String status, String approvedByAdminId, LocalDateTime createdAt) {
+    public Event(String id, Trek trek, OrganizerDetails organizer, String title, String description, String imageUrl, LocalDate eventDate, BigDecimal price, Integer capacityTotal, Integer capacityBooked, Integer version, String status, String approvedByAdminId, LocalDateTime createdAt) {
         this.id = id;
         this.trek = trek;
         this.organizer = organizer;
         this.title = title;
         this.description = description;
+        this.imageUrl = imageUrl;
         this.eventDate = eventDate;
         this.price = price;
         this.capacityTotal = capacityTotal;
@@ -124,6 +128,14 @@ public class Event {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public LocalDate getEventDate() {
@@ -215,6 +227,7 @@ public class Event {
         private OrganizerDetails organizer;
         private String title;
         private String description;
+        private String imageUrl;
         private LocalDate eventDate;
         private BigDecimal price;
         private Integer capacityTotal;
@@ -246,6 +259,11 @@ public class Event {
 
         public EventBuilder description(String description) {
             this.description = description;
+            return this;
+        }
+
+        public EventBuilder imageUrl(String imageUrl) {
+            this.imageUrl = imageUrl;
             return this;
         }
 
@@ -290,7 +308,7 @@ public class Event {
         }
 
         public Event build() {
-            return new Event(id, trek, organizer, title, description, eventDate, price, capacityTotal, capacityBooked, version, status, approvedByAdminId, createdAt);
+            return new Event(id, trek, organizer, title, description, imageUrl, eventDate, price, capacityTotal, capacityBooked, version, status, approvedByAdminId, createdAt);
         }
     }
 }
