@@ -4,6 +4,7 @@ import com.trekconnect.core.dto.request.RejectOrganizerRequest;
 import com.trekconnect.core.dto.response.AdminDashboardStatsResponse;
 import com.trekconnect.core.dto.response.DisputeResponse;
 import com.trekconnect.core.dto.response.OrganizerApplicationResponse;
+import com.trekconnect.core.dto.response.RegisteredUserResponse;
 import com.trekconnect.core.entity.OrganizerDetails;
 import com.trekconnect.core.entity.RefundRequest;
 import com.trekconnect.core.entity.UserProfile;
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * Service handling Admin verification workflows, dispute oversights, and dashboard management.
+ * Service handling admin verification workflows, dispute management, and dashboard statistics.
  */
 @Service
 public class AdminService {
@@ -60,7 +61,6 @@ public class AdminService {
         application.setVerifiedAt(LocalDateTime.now());
         application.setRejectionReason(null);
 
-        // Update matching UserProfile role from USER to ORGANIZER
         UserProfile userProfile = application.getUser();
         if (userProfile != null) {
             userProfile.setRole("ORGANIZER");
@@ -110,9 +110,9 @@ public class AdminService {
     }
 
     @Transactional(readOnly = true)
-    public List<com.trekconnect.core.dto.response.RegisteredUserResponse> getAllRegisteredUsers() {
+    public List<RegisteredUserResponse> getAllRegisteredUsers() {
         List<UserProfile> users = userProfileRepository.findAll();
-        return users.stream().map(u -> com.trekconnect.core.dto.response.RegisteredUserResponse.builder()
+        return users.stream().map(u -> RegisteredUserResponse.builder()
                 .userId(u.getUserId())
                 .name(u.getName() != null ? u.getName() : "Trekker Explorer")
                 .email(u.getEmail() != null ? u.getEmail() : (u.getUserId() + "@trekconnect.com"))
@@ -168,3 +168,4 @@ public class AdminService {
                 .build();
     }
 }
+

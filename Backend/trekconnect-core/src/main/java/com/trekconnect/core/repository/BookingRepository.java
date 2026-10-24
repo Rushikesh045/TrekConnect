@@ -1,6 +1,7 @@
 package com.trekconnect.core.repository;
 
 import com.trekconnect.core.entity.Booking;
+import com.trekconnect.core.entity.BookingStatus;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * Spring Data JPA Repository for Booking entity.
+ * Repository interface for managing Booking entities.
  */
 @Repository
 public interface BookingRepository extends JpaRepository<Booking, String> {
@@ -20,5 +21,6 @@ public interface BookingRepository extends JpaRepository<Booking, String> {
 
     List<Booking> findByEventId(String eventId);
 
-    List<Booking> findByStatusAndExpiresAtBefore(String status, LocalDateTime now);
+    List<Booking> findByStatusAndExpiresAtBefore(BookingStatus status, LocalDateTime now);
 }
+

@@ -7,6 +7,7 @@ import com.trekconnect.core.repository.EventRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,11 +15,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Public REST Controller exposing live dynamic Event Batches for Trekkers.
- * 
- * WHY THIS CONTROLLER WAS CREATED:
- * Guarantees zero static content on the trekker explorer home page.
- * When an organizer creates a new event batch in the database, trekkers immediately see it live from main_db.
+ * Controller exposing public events for the trek explorer interface.
  */
 @RestController
 @RequestMapping("/api/events")
@@ -34,9 +31,10 @@ public class EventPublicController {
     }
 
     /**
-     * Retrieves all published events from PostgreSQL database main_db with dynamic filters.
+     * Retrieves published events, cached via Redis.
      */
     @GetMapping("/public")
+    @Cacheable(value = "public_events", key = "#category + '_' + #difficulty + '_' + #region + '_' + (#search != null ? #search : 'all')")
     public ResponseEntity<List<EventResponse>> getPublicEvents(
             @RequestParam(value = "category", required = false, defaultValue = "ALL") String category,
             @RequestParam(value = "difficulty", required = false, defaultValue = "ALL") String difficulty,
@@ -107,3 +105,4 @@ public class EventPublicController {
                 .build();
     }
 }
+

@@ -7,6 +7,7 @@ import com.trekconnect.core.repository.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +16,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * Service managing Trek Catalog reference entries, Event Batches with @Version optimistic locking, and Media Gallery assets.
+ * Service managing trek catalog items, event batches, and media gallery assets.
  */
 @Service
 public class OrganizerEventService {
@@ -71,6 +72,7 @@ public class OrganizerEventService {
     }
 
     @Transactional
+    @CacheEvict(value = "public_events", allEntries = true)
     public EventResponse createEventBatch(String userId, CreateEventRequest request) {
         OrganizerDetails organizer = organizerDetailsRepository.findByUserUserId(userId)
                 .orElseGet(() -> {
@@ -116,49 +118,45 @@ public class OrganizerEventService {
     }
 
     @Transactional
+    @CacheEvict(value = "public_events", allEntries = true)
     public void deleteEventBatch(String userId, String eventId) {
         Event event = eventRepository.findById(eventId).orElse(null);
         if (event != null) {
             logger.info("Organizer {} deleting event batch ID {}", userId, eventId);
 
-            // Step 1: Delete associated media items
             List<EventMedia> mediaList = eventMediaRepository.findByEventId(eventId);
             if (!mediaList.isEmpty()) {
                 eventMediaRepository.deleteAll(mediaList);
             }
 
-            // Step 2: Delete associated bookings for this event batch (resolves FK fk2ww82bk3npaiyu9oeehwtt2q3)
             List<Booking> bookings = bookingRepository.findByEventId(eventId);
             if (!bookings.isEmpty()) {
                 logger.info("Cleaning up {} dependent booking record(s) for event {}", bookings.size(), eventId);
                 bookingRepository.deleteAll(bookings);
             }
 
-            // Step 3: Delete associated temporary seat locks for this event batch
             List<SeatLock> seatLocks = seatLockRepository.findByEventId(eventId);
             if (!seatLocks.isEmpty()) {
                 seatLockRepository.deleteAll(seatLocks);
             }
 
-            // Step 4: Delete the event entity from PostgreSQL database main_db
             eventRepository.delete(event);
-            logger.info("Event batch ID {} successfully purged from database", eventId);
+            logger.info("Event batch ID {} successfully deleted", eventId);
         }
     }
 
     @Transactional(readOnly = true)
     public List<EventResponse> getMyEvents(String userId) {
-        // Fetch only the events owned by this specific organizer
         List<Event> events = eventRepository.findByOrganizerUserUserId(userId);
         return events.stream().map(this::mapToEventResponse).toList();
     }
 
     @Transactional
+    @CacheEvict(value = "public_events", allEntries = true)
     public EventResponse updateEventBatch(String userId, String eventId, UpdateEventRequest request) {
         Event event = eventRepository.findById(eventId)
                 .orElseThrow(() -> new IllegalArgumentException("Event not found with ID: " + eventId));
 
-        // Optimistic Concurrency Locking Check
         if (request.getVersion() != null && !Objects.equals(event.getVersion(), request.getVersion())) {
             throw new ObjectOptimisticLockingFailureException(Event.class, eventId);
         }
@@ -253,3 +251,4 @@ public class OrganizerEventService {
                 .build();
     }
 }
+

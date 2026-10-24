@@ -6,12 +6,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 /**
- * Entity representing a Trek Event Booking stored in main_db.
- * 
- * WHY THIS ENTITY WAS CREATED:
- * When a trekker reserves seats for an event, a Booking record is created in 'PENDING_PAYMENT' status.
- * It contains an 'idempotencyKey' header value to guarantee duplicate booking prevention on network retry
- * and an 'expiresAt' timestamp for 10-minute temporary seat reservation locks.
+ * Entity representing a trek event booking.
  */
 @Entity
 @Table(name = "bookings")
@@ -35,17 +30,13 @@ public class Booking {
     @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
     private BigDecimal totalAmount;
 
-    /**
-     * Booking status: 'PENDING_PAYMENT', 'CONFIRMED', 'CANCELLED', 'EXPIRED', or 'REFUNDED'.
-     */
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
-    private String status = "PENDING_PAYMENT";
+    private BookingStatus status = BookingStatus.PENDING_PAYMENT;
 
-    /**
-     * Idempotency Key header value ensuring idempotent booking creations on retries.
-     */
     @Column(name = "idempotency_key", nullable = false, unique = true, length = 100)
     private String idempotencyKey;
+
 
     @Column(name = "expires_at")
     private LocalDateTime expiresAt;
@@ -56,13 +47,13 @@ public class Booking {
     public Booking() {
     }
 
-    public Booking(String id, Event event, UserProfile user, Integer numSeats, BigDecimal totalAmount, String status, String idempotencyKey, LocalDateTime expiresAt, LocalDateTime createdAt) {
+    public Booking(String id, Event event, UserProfile user, Integer numSeats, BigDecimal totalAmount, BookingStatus status, String idempotencyKey, LocalDateTime expiresAt, LocalDateTime createdAt) {
         this.id = id;
         this.event = event;
         this.user = user;
         this.numSeats = numSeats != null ? numSeats : 1;
         this.totalAmount = totalAmount;
-        this.status = status != null ? status : "PENDING_PAYMENT";
+        this.status = status != null ? status : BookingStatus.PENDING_PAYMENT;
         this.idempotencyKey = idempotencyKey;
         this.expiresAt = expiresAt;
         this.createdAt = createdAt;
@@ -113,11 +104,25 @@ public class Booking {
     }
 
     public String getStatus() {
-        return status;
+        return status != null ? status.name() : "PENDING_PAYMENT";
     }
 
-    public void setStatus(String status) {
+    public BookingStatus getBookingStatus() {
+        return status != null ? status : BookingStatus.PENDING_PAYMENT;
+    }
+
+    public void setStatus(BookingStatus status) {
         this.status = status;
+    }
+
+    public void setStatus(String statusStr) {
+        if (statusStr != null) {
+            try {
+                this.status = BookingStatus.valueOf(statusStr);
+            } catch (IllegalArgumentException e) {
+                this.status = BookingStatus.PENDING_PAYMENT;
+            }
+        }
     }
 
     public String getIdempotencyKey() {
@@ -153,12 +158,12 @@ public class Booking {
             this.numSeats = 1;
         }
         if (this.status == null) {
-            this.status = "PENDING_PAYMENT";
+            this.status = BookingStatus.PENDING_PAYMENT;
         }
         if (this.createdAt == null) {
             this.createdAt = LocalDateTime.now();
         }
-        if (this.expiresAt == null && "PENDING_PAYMENT".equals(this.status)) {
+        if (this.expiresAt == null && BookingStatus.PENDING_PAYMENT.equals(this.status)) {
             this.expiresAt = this.createdAt.plusMinutes(10);
         }
     }
@@ -169,7 +174,7 @@ public class Booking {
         private UserProfile user;
         private Integer numSeats = 1;
         private BigDecimal totalAmount;
-        private String status = "PENDING_PAYMENT";
+        private BookingStatus status = BookingStatus.PENDING_PAYMENT;
         private String idempotencyKey;
         private LocalDateTime expiresAt;
         private LocalDateTime createdAt;
@@ -199,8 +204,19 @@ public class Booking {
             return this;
         }
 
-        public BookingBuilder status(String status) {
+        public BookingBuilder status(BookingStatus status) {
             this.status = status;
+            return this;
+        }
+
+        public BookingBuilder status(String statusStr) {
+            if (statusStr != null) {
+                try {
+                    this.status = BookingStatus.valueOf(statusStr);
+                } catch (IllegalArgumentException e) {
+                    this.status = BookingStatus.PENDING_PAYMENT;
+                }
+            }
             return this;
         }
 

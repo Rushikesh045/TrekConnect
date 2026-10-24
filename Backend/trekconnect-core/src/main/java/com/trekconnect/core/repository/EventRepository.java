@@ -28,4 +28,12 @@ public interface EventRepository extends JpaRepository<Event, String> {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT e FROM Event e WHERE e.id = :id")
     Optional<Event> findByIdWithPessimisticLock(@Param("id") String id);
+
+    /**
+     * Queries Event entity with JPA Optimistic Lock mode.
+     * Verifies @Version field upon update to detect concurrent seat modification conflicts.
+     */
+    @Lock(LockModeType.OPTIMISTIC)
+    @Query("SELECT e FROM Event e WHERE e.id = :id")
+    Optional<Event> findByIdWithOptimisticLock(@Param("id") String id);
 }

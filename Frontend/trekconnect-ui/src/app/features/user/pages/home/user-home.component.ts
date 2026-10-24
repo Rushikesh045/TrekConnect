@@ -34,7 +34,7 @@ interface MockTrek {
 }
 
 /**
- * USER (Trekker) Role Home Explorer Page Component with High-Concurrency Seat Checkout Modal.
+ * Home component for exploring treks and reserving seats.
  */
 @Component({
   selector: 'app-user-home',
@@ -64,14 +64,14 @@ export class UserHomeComponent implements OnInit {
   selectedDifficulty = 'ALL';
   selectedRegion = 'ALL';
 
-  // Selected Trek for Modal Detail View & Phase 7 Reviews
+  // Selected Trek for Modal Detail View & Reviews
   selectedTrek: MockTrek | null = null;
   isDetailModalOpen = false;
   trekReviews: TrekReview[] = [];
   newReviewRating = 5;
   newReviewComment = '';
 
-  // Checkout Modal State (Phase 5 Seat Reservation & Phase 6 Razorpay)
+  // Checkout Modal State
   isCheckoutModalOpen = false;
   selectedSeatsCount = 1;
   idempotencyKey = '';
@@ -90,17 +90,17 @@ export class UserHomeComponent implements OnInit {
     { id: 'HIMALAYA', label: 'Himalayan Expeditions', icon: 'ri-mountain-line' }
   ];
 
-  // Dynamic catalog of treks loaded live from PostgreSQL database main_db via /api/events/public
+  // Dynamic catalog of treks loaded live from the backend API
   treks: MockTrek[] = [];
 
   ngOnInit(): void {
-    console.log('[UserHomeComponent] Initialized - Loading dynamic database events...');
     const user = this.tokenService.getUser();
     this.currentUserEmail = user?.email || 'Trekker';
     this.userRole = this.tokenService.getRole() || 'USER';
 
     this.loadDynamicPublicEvents();
   }
+
 
   loadDynamicPublicEvents(): void {
     const url = `${environment.monolithApiUrl}/events/public?category=${this.selectedCategory}&difficulty=${this.selectedDifficulty}&region=${this.selectedRegion}&search=${encodeURIComponent(this.searchQuery || '')}`;
