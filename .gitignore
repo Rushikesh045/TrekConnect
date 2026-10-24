@@ -13,3 +13,7 @@
 .metadata/
 **/.metadata/
 *.log
+
+# Local Documentation & Personal Files
+*.pdf
+GITHUB_PROFILE_README.md
