@@ -13,15 +13,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 
 /**
- * Orchestrates booking transactions, status changes, outbox events, and compensating seat releases.
+ * Orchestrates booking transactions, status changes, outbox events, compensating seat releases,
+ * and real-time notifications/email dispatch upon payment settlement.
  */
 @Service
 public class BookingSagaOrchestrator {
@@ -33,18 +36,27 @@ public class BookingSagaOrchestrator {
     private final EventRepository eventRepository;
     private final RedisLockService redisLockService;
     private final OutboxEventRepository outboxEventRepository;
+    private final EmailNotificationService emailNotificationService;
+    private final NotificationService notificationService;
+
+    @Autowired(required = false)
+    private SimpMessagingTemplate messagingTemplate;
 
     @Autowired
     public BookingSagaOrchestrator(BookingService bookingService,
                                   BookingRepository bookingRepository,
                                   EventRepository eventRepository,
                                   RedisLockService redisLockService,
-                                  OutboxEventRepository outboxEventRepository) {
+                                  OutboxEventRepository outboxEventRepository,
+                                  EmailNotificationService emailNotificationService,
+                                  NotificationService notificationService) {
         this.bookingService = bookingService;
         this.bookingRepository = bookingRepository;
         this.eventRepository = eventRepository;
         this.redisLockService = redisLockService;
         this.outboxEventRepository = outboxEventRepository;
+        this.emailNotificationService = emailNotificationService;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -64,6 +76,22 @@ public class BookingSagaOrchestrator {
                     String.format("{\"bookingId\":\"%s\",\"eventId\":\"%s\",\"userId\":\"%s\",\"numSeats\":%d,\"status\":\"PENDING_PAYMENT\"}",
                             response.getId(), response.getEventId(), userId, response.getNumSeats()));
 
+            // Broadcast real-time seat update over WebSocket
+            if (messagingTemplate != null) {
+                try {
+                    Event event = eventRepository.findById(request.getEventId()).orElse(null);
+                    if (event != null) {
+                        int total = event.getCapacityTotal() != null ? event.getCapacityTotal() : 25;
+                        int booked = event.getCapacityBooked() != null ? event.getCapacityBooked() : 0;
+                        int available = Math.max(0, total - booked);
+                        messagingTemplate.convertAndSend("/topic/events/" + event.getId() + "/seats",
+                                Map.of("eventId", event.getId(), "availableSeats", available));
+                    }
+                } catch (Exception wsEx) {
+                    logger.warn("WebSocket seat broadcast warning: {}", wsEx.getMessage());
+                }
+            }
+
             return response;
         } finally {
             if (lockToken != null) {
@@ -73,7 +101,7 @@ public class BookingSagaOrchestrator {
     }
 
     /**
-     * Handles payment success callback and confirms booking.
+     * Handles payment success callback, confirms booking, and dispatches real-time alerts and email.
      */
     @Transactional
     public void handlePaymentSuccess(String bookingId, String paymentId) {
@@ -95,6 +123,43 @@ public class BookingSagaOrchestrator {
                             booking.getId(), paymentId));
 
             logger.info("Booking confirmed: {}", booking.getId());
+
+            // Trigger In-App Notification, WebSocket Broadcast & Email Confirmation
+            String userId = booking.getUser() != null ? booking.getUser().getUserId() : null;
+            String userEmail = (booking.getUser() != null && booking.getUser().getEmail() != null && !booking.getUser().getEmail().isBlank())
+                    ? booking.getUser().getEmail() : "trekker@trekconnect.com";
+            String userName = booking.getUser() != null ? booking.getUser().getName() : "Adventurer";
+            String trekName = (booking.getEvent() != null && booking.getEvent().getTrek() != null)
+                    ? booking.getEvent().getTrek().getName() : "Trek Expedition";
+
+            if (userId != null) {
+                notificationService.createNotification(
+                        userId,
+                        "Booking Confirmed!",
+                        "Your reservation for " + trekName + " has been successfully confirmed.",
+                        "BOOKING_CONFIRMED"
+                );
+
+                if (messagingTemplate != null) {
+                    try {
+                        messagingTemplate.convertAndSend("/topic/user/" + userId + "/booking-updates",
+                                Map.of("bookingId", booking.getId(), "status", "CONFIRMED", "trekName", trekName));
+                    } catch (Exception wsEx) {
+                        logger.warn("Failed to push booking update WebSocket: {}", wsEx.getMessage());
+                    }
+                }
+            }
+
+            if (userEmail != null) {
+                emailNotificationService.sendBookingConfirmation(
+                        userEmail,
+                        userName,
+                        trekName,
+                        booking.getNumSeats() != null ? booking.getNumSeats() : 1,
+                        booking.getTotalAmount(),
+                        booking.getId()
+                );
+            }
         } else {
             logger.warn("Invalid transition: {} -> CONFIRMED for booking: {}", currentStatus, bookingId);
         }
@@ -159,22 +224,24 @@ public class BookingSagaOrchestrator {
         }
     }
 
-    /**
-     * Fetches recent outbox events for audit or debugging.
-     */
-    @Transactional(readOnly = true)
-    public List<OutboxEvent> getRecentOutboxEvents() {
-        return outboxEventRepository.findTop50ByOrderByCreatedAtDesc();
-    }
-
     private void releaseSeatsCompensatingAction(Booking booking) {
         Event event = booking.getEvent();
         if (event != null && event.getCapacityBooked() != null) {
-            int seatsToRelease = booking.getNumSeats() != null ? booking.getNumSeats() : 1;
-            int newBooked = Math.max(0, event.getCapacityBooked() - seatsToRelease);
+            int newBooked = Math.max(0, event.getCapacityBooked() - (booking.getNumSeats() != null ? booking.getNumSeats() : 1));
             event.setCapacityBooked(newBooked);
             eventRepository.save(event);
-            logger.info("Released {} seat(s) for event: {}. New booked total: {}", seatsToRelease, event.getId(), newBooked);
+
+            // Broadcast real-time restored seat count over WebSocket
+            if (messagingTemplate != null) {
+                try {
+                    int total = event.getCapacityTotal() != null ? event.getCapacityTotal() : 25;
+                    int available = Math.max(0, total - newBooked);
+                    messagingTemplate.convertAndSend("/topic/events/" + event.getId() + "/seats",
+                            Map.of("eventId", event.getId(), "availableSeats", available));
+                } catch (Exception wsEx) {
+                    logger.warn("WebSocket seat broadcast warning: {}", wsEx.getMessage());
+                }
+            }
         }
     }
 
@@ -185,9 +252,11 @@ public class BookingSagaOrchestrator {
                 .eventType(eventType)
                 .payload(payload)
                 .status("PENDING")
-                .createdAt(LocalDateTime.now())
                 .build();
         outboxEventRepository.save(outboxEvent);
     }
-}
 
+    public List<OutboxEvent> getRecentOutboxEvents() {
+        return outboxEventRepository.findTop50ByOrderByCreatedAtDesc();
+    }
+}

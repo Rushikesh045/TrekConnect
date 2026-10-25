@@ -5,6 +5,7 @@ import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 import { TokenService } from '../../../../core/services/token.service';
+import { WebSocketService } from '../../../../core/services/websocket.service';
 import { Role } from '../../../../core/models/auth.model';
 import { AuthCardLayoutComponent } from '../../../../shared/components/auth-card-layout/auth-card-layout.component';
 import { FormInputComponent } from '../../../../shared/components/form-input/form-input.component';
@@ -40,6 +41,7 @@ export class LoginComponent {
   private authService = inject(AuthService);
   private notificationService = inject(NotificationService);
   private tokenService = inject(TokenService);
+  private wsService = inject(WebSocketService);
   private router = inject(Router);
 
   // Selected identity role: 'USER' (default), 'ORGANIZER', or 'ADMIN'
@@ -104,6 +106,8 @@ export class LoginComponent {
 
         // Step 5: On success, stop loading & show success notification toast
         this.isLoading = false;
+        this.wsService.init();
+        this.wsService.subscribeToNotifications(res.user.id);
         this.notificationService.showSuccess(
           `Welcome back, ${res.user.email}! Signed in as ${res.user.role}.`,
           'Login Successful'

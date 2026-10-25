@@ -27,14 +27,20 @@ public class AdminService {
     private final OrganizerDetailsRepository organizerDetailsRepository;
     private final UserProfileRepository userProfileRepository;
     private final RefundRequestRepository refundRequestRepository;
+    private final EmailNotificationService emailNotificationService;
+    private final NotificationService notificationService;
 
     @Autowired
     public AdminService(OrganizerDetailsRepository organizerDetailsRepository, 
                         UserProfileRepository userProfileRepository,
-                        RefundRequestRepository refundRequestRepository) {
+                        RefundRequestRepository refundRequestRepository,
+                        EmailNotificationService emailNotificationService,
+                        NotificationService notificationService) {
         this.organizerDetailsRepository = organizerDetailsRepository;
         this.userProfileRepository = userProfileRepository;
         this.refundRequestRepository = refundRequestRepository;
+        this.emailNotificationService = emailNotificationService;
+        this.notificationService = notificationService;
     }
 
     @Transactional(readOnly = true)
@@ -68,6 +74,19 @@ public class AdminService {
         }
 
         OrganizerDetails saved = organizerDetailsRepository.save(application);
+
+        if (userProfile != null) {
+            notificationService.createNotification(
+                    userProfile.getUserId(),
+                    "Organizer Application Approved!",
+                    "Your organizer application has been verified. Welcome to TrekConnect Organizer Network!",
+                    "ORGANIZER_APPROVED"
+            );
+            if (userProfile.getEmail() != null) {
+                emailNotificationService.sendOrganizerApproval(userProfile.getEmail(), userProfile.getName());
+            }
+        }
+
         return mapToOrganizerResponse(saved);
     }
 
@@ -82,6 +101,17 @@ public class AdminService {
         application.setRejectionReason(request.getRejectionReason());
 
         OrganizerDetails saved = organizerDetailsRepository.save(application);
+
+        UserProfile profile = application.getUser();
+        if (profile != null) {
+            notificationService.createNotification(
+                    profile.getUserId(),
+                    "Organizer Application Status Update",
+                    "Your organizer application has been reviewed. Status: REJECTED. Reason: " + request.getRejectionReason(),
+                    "ORGANIZER_REJECTED"
+            );
+        }
+
         return mapToOrganizerResponse(saved);
     }
 

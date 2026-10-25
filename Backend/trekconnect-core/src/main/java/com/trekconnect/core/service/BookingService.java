@@ -38,16 +38,22 @@ public class BookingService {
     private final EventRepository eventRepository;
     private final SeatLockRepository seatLockRepository;
     private final UserProfileRepository userProfileRepository;
+    private final EmailNotificationService emailNotificationService;
+    private final NotificationService notificationService;
 
     @Autowired
     public BookingService(BookingRepository bookingRepository, 
                           EventRepository eventRepository, 
                           SeatLockRepository seatLockRepository, 
-                          UserProfileRepository userProfileRepository) {
+                          UserProfileRepository userProfileRepository,
+                          EmailNotificationService emailNotificationService,
+                          NotificationService notificationService) {
         this.bookingRepository = bookingRepository;
         this.eventRepository = eventRepository;
         this.seatLockRepository = seatLockRepository;
         this.userProfileRepository = userProfileRepository;
+        this.emailNotificationService = emailNotificationService;
+        this.notificationService = notificationService;
     }
 
     /**
@@ -90,7 +96,12 @@ public class BookingService {
         eventRepository.save(event);
 
         UserProfile userProfile = userProfileRepository.findById(userId)
-                .orElseGet(() -> userProfileRepository.save(UserProfile.builder().userId(userId).name("Trekker").role("USER").build()));
+                .orElseGet(() -> userProfileRepository.save(UserProfile.builder().userId(userId).name("Trekker").email("trekker@trekconnect.com").role("USER").build()));
+
+        if (userProfile.getEmail() == null || userProfile.getEmail().isBlank()) {
+            userProfile.setEmail("trekker@trekconnect.com");
+            userProfileRepository.save(userProfile);
+        }
 
         BigDecimal price = event.getPrice() != null ? event.getPrice() : BigDecimal.valueOf(1850);
         BigDecimal totalAmount = price.multiply(BigDecimal.valueOf(seatsRequested));
@@ -152,6 +163,27 @@ public class BookingService {
             }
 
             bookingRepository.save(booking);
+
+            // Send in-app notification & cancellation email
+            if (booking.getUser() != null) {
+                String trekName = (event != null && event.getTrek() != null) ? event.getTrek().getName() : "Expedition";
+                if (booking.getUser().getUserId() != null) {
+                    notificationService.createNotification(
+                            booking.getUser().getUserId(),
+                            "Booking Cancelled",
+                            "Your booking (" + booking.getId() + ") for " + trekName + " has been cancelled.",
+                            "BOOKING_CANCELLED"
+                    );
+                }
+                if (booking.getUser().getEmail() != null) {
+                    emailNotificationService.sendBookingCancellation(
+                            booking.getUser().getEmail(),
+                            booking.getUser().getName(),
+                            trekName,
+                            booking.getId()
+                    );
+                }
+            }
         }
 
         return mapToBookingResponse(booking);

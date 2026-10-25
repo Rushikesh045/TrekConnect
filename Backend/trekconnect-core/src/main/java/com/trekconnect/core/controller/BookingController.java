@@ -2,11 +2,18 @@ package com.trekconnect.core.controller;
 
 import com.trekconnect.core.dto.request.ReserveSeatRequest;
 import com.trekconnect.core.dto.response.BookingResponse;
+import com.trekconnect.core.entity.Booking;
 import com.trekconnect.core.entity.OutboxEvent;
+import com.trekconnect.core.repository.BookingRepository;
+import com.trekconnect.core.service.BookingReceiptPdfService;
 import com.trekconnect.core.service.BookingService;
 import com.trekconnect.core.service.BookingSagaOrchestrator;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -24,11 +31,18 @@ public class BookingController {
 
     private final BookingService bookingService;
     private final BookingSagaOrchestrator sagaOrchestrator;
+    private final BookingRepository bookingRepository;
+    private final BookingReceiptPdfService receiptPdfService;
 
     @Autowired
-    public BookingController(BookingService bookingService, BookingSagaOrchestrator sagaOrchestrator) {
+    public BookingController(BookingService bookingService,
+                             BookingSagaOrchestrator sagaOrchestrator,
+                             BookingRepository bookingRepository,
+                             BookingReceiptPdfService receiptPdfService) {
         this.bookingService = bookingService;
         this.sagaOrchestrator = sagaOrchestrator;
+        this.bookingRepository = bookingRepository;
+        this.receiptPdfService = receiptPdfService;
     }
 
     @PostMapping("/reserve")
@@ -63,6 +77,35 @@ public class BookingController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{id}/receipt")
+    public ResponseEntity<byte[]> getBookingReceipt(
+            Authentication authentication,
+            @PathVariable("id") String id) {
+        String userId = (String) authentication.getPrincipal();
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + id));
+
+        boolean isOwner = booking.getUser() != null && userId.equals(booking.getUser().getUserId());
+        boolean hasAdminRole = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_ORGANIZER"));
+
+        if (!isOwner && !hasAdminRole) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        byte[] pdfBytes = receiptPdfService.generateReceiptPdf(booking);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("TrekConnect_Receipt_" + id + ".pdf")
+                .build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+    }
+
     @GetMapping("/saga/outbox")
     public ResponseEntity<List<OutboxEvent>> getOutboxEvents() {
         return ResponseEntity.ok(sagaOrchestrator.getRecentOutboxEvents());
@@ -80,3 +123,4 @@ public class BookingController {
         return ResponseEntity.ok("Saga transition to CONFIRMED executed for booking ID: " + bookingId);
     }
 }
+

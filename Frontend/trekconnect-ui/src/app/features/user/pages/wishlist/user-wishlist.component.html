@@ -1,0 +1,286 @@
+<div class="wishlist-wrapper">
+
+  <!-- TOP NAVBAR -->
+  <nav class="top-navbar">
+    <div class="nav-container">
+      <div class="brand-logo" routerLink="/user/home">
+        <i class="ri-compass-3-fill logo-icon"></i>
+        <div class="brand-text">
+          <span class="brand-title">TrekConnect</span>
+          <span class="brand-badge">SAVED ADVENTURES</span>
+        </div>
+      </div>
+
+      <div class="nav-links">
+        <button class="nav-link-btn" routerLink="/user/home">
+          <i class="ri-compass-line"></i> Explore Treks
+        </button>
+        <button class="nav-link-btn active" routerLink="/user/wishlist">
+          <i class="ri-heart-3-fill"></i> Wishlist
+        </button>
+        <button class="nav-link-btn" routerLink="/user/bookings">
+          <i class="ri-ticket-2-line"></i> My Bookings
+        </button>
+      </div>
+
+      <div class="nav-actions">
+        <div class="profile-menu-container">
+          <button class="profile-pill-btn" (click)="toggleProfileDropdown()">
+            <div class="user-avatar">
+              <i class="ri-user-3-fill"></i>
+            </div>
+            <span class="user-email-text">{{ userEmail }}</span>
+            <i class="ri-arrow-down-s-line chevron-icon"></i>
+          </button>
+
+          <div class="profile-dropdown-menu" *ngIf="isProfileDropdownOpen">
+            <div class="dropdown-header">
+              <p class="user-name">{{ userEmail }}</p>
+              <p class="user-role-label">Trekker Explorer</p>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" routerLink="/user/profile" (click)="toggleProfileDropdown()">
+              <i class="ri-user-line"></i> My Profile
+            </a>
+            <a class="dropdown-item" routerLink="/user/bookings" (click)="toggleProfileDropdown()">
+              <i class="ri-ticket-line"></i> My Bookings
+            </a>
+            <div class="dropdown-divider"></div>
+            <button class="dropdown-item logout-item" (click)="onLogout()">
+              <i class="ri-logout-box-r-line"></i> Sign Out
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN WISHLIST FEED BODY -->
+  <main class="wishlist-container">
+    
+    <!-- HEADER HERO -->
+    <header class="wishlist-header">
+      <div class="header-left">
+        <div class="badge-pill">
+          <i class="ri-heart-pulse-fill"></i> Personal Trek Wishlist
+        </div>
+        <h1 class="page-title">Saved Adventures & Upcoming Batches</h1>
+        <p class="page-subtitle">
+          Real-time availability, departure schedules, and direct seat booking for all your saved Sahyadri expeditions.
+        </p>
+      </div>
+      <div class="header-right">
+        <div class="stats-badge">
+          <span class="count">{{ wishlistItems.length }}</span>
+          <span class="label">Treks Saved</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- LOADING STATE -->
+    <div class="loading-state" *ngIf="isLoading">
+      <i class="ri-loader-4-line spin-icon"></i>
+      <p>Loading your saved wishlist and live batch schedules...</p>
+    </div>
+
+    <!-- EMPTY WISHLIST STATE -->
+    <div class="empty-state" *ngIf="!isLoading && wishlistItems.length === 0">
+      <div class="empty-icon-box">
+        <i class="ri-heart-add-line"></i>
+      </div>
+      <h2>Your Wishlist is Empty</h2>
+      <p>You haven't saved any treks yet. Explore our curated Maharashtra fort treks and waterfalls to save your favorites.</p>
+      <button class="explore-btn" routerLink="/user/home">
+        <i class="ri-compass-3-line"></i> Browse All Treks
+      </button>
+    </div>
+
+    <!-- WISHLIST FEED CARDS -->
+    <div class="wishlist-grid" *ngIf="!isLoading && wishlistItems.length > 0">
+      <div class="wishlist-card" *ngFor="let item of wishlistItems">
+        
+        <!-- CARD MEDIA BANNER -->
+        <div class="card-image-box">
+          <img [src]="item.imageUrl || 'assets/images/placeholder-trek.jpg'" [alt]="item.trekName" class="trek-img" />
+          <div class="card-overlay">
+            <span class="difficulty-chip" [ngClass]="item.difficulty.toLowerCase()">
+              {{ item.difficulty || 'MODERATE' }}
+            </span>
+            <button class="remove-btn" (click)="removeFromWishlist(item)" title="Remove from Wishlist">
+              <i class="ri-heart-dislike-line"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- CARD CONTENT -->
+        <div class="card-content">
+          <div class="card-header-row">
+            <span class="region-tag"><i class="ri-map-pin-2-fill"></i> {{ item.region || 'Maharashtra' }}</span>
+            <span class="season-tag" *ngIf="item.bestSeason"><i class="ri-cloud-windy-line"></i> {{ item.bestSeason }}</span>
+          </div>
+
+          <h3 class="trek-title">{{ item.trekName }}</h3>
+          <p class="trek-desc">{{ item.description }}</p>
+
+          <!-- METRICS -->
+          <div class="metrics-row">
+            <div class="metric-pill" *ngIf="item.altitudeMeters">
+              <i class="ri-mountain-line"></i>
+              <span>{{ item.altitudeMeters }} m</span>
+            </div>
+            <div class="metric-pill" *ngIf="item.durationDays">
+              <i class="ri-time-line"></i>
+              <span>{{ item.durationDays }} Day(s)</span>
+            </div>
+            <div class="metric-pill" *ngIf="item.distanceKm">
+              <i class="ri-footprint-line"></i>
+              <span>{{ item.distanceKm }} km</span>
+            </div>
+          </div>
+
+          <!-- ACTIVE EVENTS / BATCH SCHEDULES -->
+          <div class="events-section">
+            <div class="events-section-header">
+              <span class="section-lbl"><i class="ri-calendar-event-line"></i> Available Upcoming Batches</span>
+              <span class="batches-count" *ngIf="item.availableEvents?.length">{{ item.availableEvents.length }} Batch(es) Active</span>
+            </div>
+
+            <!-- If Batches Exist -->
+            <div class="events-list" *ngIf="item.availableEvents && item.availableEvents.length > 0; else noBatches">
+              <div class="event-batch-item" *ngFor="let ev of item.availableEvents">
+                <div class="batch-info">
+                  <span class="batch-title">{{ ev.title }}</span>
+                  <div class="batch-meta">
+                    <span class="batch-date"><i class="ri-calendar-line"></i> {{ ev.eventDate || 'Upcoming Weekend' }}</span>
+                    <span class="batch-seats" [class.low-seats]="ev.availableSeats < 5">
+                      <i class="ri-user-star-line"></i> {{ ev.availableSeats }} / {{ ev.totalSeats }} Seats Left
+                    </span>
+                  </div>
+                  <span class="organizer-sub" *ngIf="ev.organizerName">Led by: {{ ev.organizerName }}</span>
+                </div>
+
+                <div class="batch-action">
+                  <span class="batch-price">₹{{ ev.cost }}</span>
+                  <button 
+                    class="book-seat-btn" 
+                    [disabled]="ev.availableSeats <= 0"
+                    (click)="openBookingModal(item, ev)"
+                  >
+                    <i class="ri-flashlight-line"></i>
+                    {{ ev.availableSeats > 0 ? 'Book Seat' : 'Sold Out' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <ng-template #noBatches>
+              <div class="no-batches-box">
+                <i class="ri-calendar-close-line"></i>
+                <p>No active organizer batches right now. Check back soon for upcoming weekend departures!</p>
+              </div>
+            </ng-template>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- CHECKOUT / BOOKING MODAL -->
+  <div class="modal-backdrop" *ngIf="isCheckoutModalOpen && selectedEventForBooking" (click)="closeCheckoutModal()">
+    <div class="modal-card checkout-card" (click)="$event.stopPropagation()">
+      <button class="close-modal-btn" (click)="closeCheckoutModal()"><i class="ri-close-line"></i></button>
+
+      <div class="modal-header">
+        <span class="modal-badge"><i class="ri-shield-check-fill"></i> Instant Reservation</span>
+        <h2>Reserve Trek Slots</h2>
+        <p class="modal-sub">{{ selectedTrekForBooking?.trekName }} • {{ selectedEventForBooking.title }}</p>
+      </div>
+
+      <div class="modal-body" *ngIf="!activeBooking">
+        <div class="summary-box">
+          <div class="sum-row">
+            <span class="sum-lbl">Departure Date</span>
+            <span class="sum-val">{{ selectedEventForBooking.eventDate || 'Upcoming Weekend' }}</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-lbl">Price Per Adventurer</span>
+            <span class="sum-val">₹{{ selectedEventForBooking.cost }}</span>
+          </div>
+          <div class="sum-row">
+            <span class="sum-lbl">Available Seats</span>
+            <span class="sum-val highlight">{{ selectedEventForBooking.availableSeats }} Slots Remaining</span>
+          </div>
+        </div>
+
+        <div class="seats-counter-box">
+          <label class="counter-label">Select Number of Adventurers</label>
+          <div class="counter-controls">
+            <button class="counter-btn" (click)="decrementSeats()" [disabled]="selectedSeatsCount <= 1">
+              <i class="ri-subtract-line"></i>
+            </button>
+            <span class="count-display">{{ selectedSeatsCount }}</span>
+            <button class="counter-btn" (click)="incrementSeats()" [disabled]="selectedSeatsCount >= selectedEventForBooking.availableSeats">
+              <i class="ri-add-line"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="price-total-box">
+          <span class="tot-lbl">Total Payable</span>
+          <span class="tot-val">₹{{ selectedSeatsCount * selectedEventForBooking.cost }}</span>
+        </div>
+
+        <div class="idempotency-note">
+          <i class="ri-lock-line"></i>
+          <span>Layered Saga Lock & Distributed Redis Transaction will hold seats for 10 minutes.</span>
+        </div>
+
+        <button class="confirm-reserve-btn" (click)="confirmReservation()">
+          <i class="ri-lock-2-line"></i> Lock Seats & Proceed to Payment
+        </button>
+      </div>
+
+      <!-- STEP 2: ACTIVE HOLD PAYMENT -->
+      <div class="modal-body payment-step" *ngIf="activeBooking">
+        <div class="hold-active-banner">
+          <i class="ri-timer-flash-line banner-icon"></i>
+          <div>
+            <h4>10-Minute Seat Hold Active!</h4>
+            <p>Your seats are securely locked in Redis cache. Complete payment to finalize your booking.</p>
+          </div>
+        </div>
+
+        <div class="booking-summary-grid">
+          <div class="sum-item">
+            <span class="lbl">Booking ID</span>
+            <span class="val code">TC-REF-{{ activeBooking.id.substring(0, 8).toUpperCase() }}</span>
+          </div>
+          <div class="sum-item">
+            <span class="lbl">Slots</span>
+            <span class="val">{{ activeBooking.numSeats }} Seats</span>
+          </div>
+          <div class="sum-item">
+            <span class="lbl">Amount</span>
+            <span class="val price">₹{{ activeBooking.totalAmount }}</span>
+          </div>
+          <div class="sum-item">
+            <span class="lbl">Hold Expiry</span>
+            <span class="val">10 Minutes</span>
+          </div>
+        </div>
+
+        <button class="pay-btn" (click)="payNowWithRazorpay()" [disabled]="isProcessingPayment">
+          <i class="ri-shield-check-line" *ngIf="!isProcessingPayment"></i>
+          <i class="ri-loader-4-line spin-icon" *ngIf="isProcessingPayment"></i>
+          <span>{{ isProcessingPayment ? 'Settling Payment...' : 'Pay ₹' + activeBooking.totalAmount + ' via Razorpay' }}</span>
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+

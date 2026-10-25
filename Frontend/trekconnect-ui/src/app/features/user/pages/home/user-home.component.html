@@ -25,7 +25,7 @@
       </div>
 
       <div class="nav-actions">
-        <button class="nav-icon-btn" title="Saved Wishlist" (click)="selectCategory('WISHLIST')" [class.active]="selectedCategory === 'WISHLIST'">
+        <button class="nav-icon-btn" title="Saved Wishlist" routerLink="/user/wishlist">
           <i class="ri-heart-3-line"></i>
         </button>
         <button class="nav-icon-btn" title="My Bookings" routerLink="/user/bookings">
@@ -51,7 +51,7 @@
             <div class="dropdown-divider"></div>
             <a class="dropdown-item" routerLink="/user/profile" (click)="toggleProfileDropdown()"><i class="ri-user-line"></i> My Profile</a>
             <a class="dropdown-item" routerLink="/user/bookings" (click)="toggleProfileDropdown()"><i class="ri-ticket-line"></i> My Bookings</a>
-            <a class="dropdown-item" (click)="selectCategory('WISHLIST'); toggleProfileDropdown()"><i class="ri-heart-line"></i> Saved Wishlist</a>
+            <a class="dropdown-item" routerLink="/user/wishlist" (click)="toggleProfileDropdown()"><i class="ri-heart-line"></i> Saved Wishlist</a>
             <div class="dropdown-divider"></div>
             <button class="dropdown-item logout-item" (click)="onLogout()">
               <i class="ri-logout-box-r-line"></i> Sign Out
@@ -479,4 +479,6 @@
   </div>
 
 </div>
+
+
 

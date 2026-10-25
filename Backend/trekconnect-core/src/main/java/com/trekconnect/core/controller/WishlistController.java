@@ -1,11 +1,13 @@
 package com.trekconnect.core.controller;
 
+import com.trekconnect.core.dto.response.WishlistFeedResponse;
 import com.trekconnect.core.entity.Wishlist;
 import com.trekconnect.core.service.WishlistService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +15,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * REST Controller for Phase 7 Wishlist Management.
+ * REST Controller for Wishlist Management and Enriched Wishlist Feed.
  */
 @RestController
 @RequestMapping("/api/wishlist")
@@ -29,9 +31,10 @@ public class WishlistController {
     }
 
     @PostMapping("/toggle")
-    public ResponseEntity<Map<String, Object>> toggleWishlist(@AuthenticationPrincipal String userId,
+    public ResponseEntity<Map<String, Object>> toggleWishlist(Authentication authentication,
                                                               @RequestBody Map<String, String> body) {
-        String effectiveUser = userId != null ? userId : "usr-1";
+        String effectiveUser = authentication != null && authentication.getPrincipal() != null
+                ? (String) authentication.getPrincipal() : "usr-1";
         String trekId = body.get("trekId");
 
         logger.info("REST Request: POST /api/wishlist/toggle for Trek: {}", trekId);
@@ -40,9 +43,18 @@ public class WishlistController {
     }
 
     @GetMapping("/my-wishlist")
-    public ResponseEntity<List<Wishlist>> getMyWishlist(@AuthenticationPrincipal String userId) {
-        String effectiveUser = userId != null ? userId : "usr-1";
+    public ResponseEntity<List<Wishlist>> getMyWishlist(Authentication authentication) {
+        String effectiveUser = authentication != null && authentication.getPrincipal() != null
+                ? (String) authentication.getPrincipal() : "usr-1";
         logger.info("REST Request: GET /api/wishlist/my-wishlist for User: {}", effectiveUser);
         return ResponseEntity.ok(wishlistService.getMyWishlist(effectiveUser));
+    }
+
+    @GetMapping("/feed")
+    public ResponseEntity<List<WishlistFeedResponse>> getWishlistFeed(Authentication authentication) {
+        String effectiveUser = authentication != null && authentication.getPrincipal() != null
+                ? (String) authentication.getPrincipal() : "usr-1";
+        logger.info("REST Request: GET /api/wishlist/feed for User: {}", effectiveUser);
+        return ResponseEntity.ok(wishlistService.getWishlistFeed(effectiveUser));
     }
 }

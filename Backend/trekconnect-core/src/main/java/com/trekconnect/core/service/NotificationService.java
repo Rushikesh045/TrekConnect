@@ -5,6 +5,7 @@ import com.trekconnect.core.repository.UserNotificationRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,9 +13,7 @@ import java.util.List;
 
 /**
  * Service managing user notifications and alerts.
- * 
- * WHY THIS SERVICE WAS CREATED:
- * Sends in-app notifications and manages unread alert badges.
+ * Supports real-time WebSocket push notifications via STOMP broker.
  */
 @Service
 public class NotificationService {
@@ -23,13 +22,16 @@ public class NotificationService {
 
     private final UserNotificationRepository notificationRepository;
 
+    @Autowired(required = false)
+    private SimpMessagingTemplate messagingTemplate;
+
     @Autowired
     public NotificationService(UserNotificationRepository notificationRepository) {
         this.notificationRepository = notificationRepository;
     }
 
     /**
-     * Creates a new notification for a user.
+     * Creates a new notification for a user and pushes it in real-time via WebSocket.
      */
     @Transactional
     public UserNotification createNotification(String userId, String title, String message, String type) {
@@ -43,7 +45,19 @@ public class NotificationService {
                 .isRead(false)
                 .build();
 
-        return notificationRepository.save(notification);
+        UserNotification saved = notificationRepository.save(notification);
+
+        // Real-time broadcast to user-specific WebSocket channel
+        if (messagingTemplate != null && userId != null) {
+            try {
+                messagingTemplate.convertAndSend("/topic/notifications/" + userId, saved);
+                logger.debug("Pushed WebSocket notification to /topic/notifications/{}", userId);
+            } catch (Exception ex) {
+                logger.warn("Failed to dispatch WebSocket message: {}", ex.getMessage());
+            }
+        }
+
+        return saved;
     }
 
     /**
@@ -69,3 +83,4 @@ public class NotificationService {
         return notificationRepository.save(notification);
     }
 }
+

@@ -50,4 +50,10 @@ export class BookingService {
   cancelBooking(bookingId: string): Observable<BookingResponse> {
     return this.http.put<BookingResponse>(`${this.apiUrl}/${bookingId}/cancel`, {});
   }
+
+  downloadReceipt(bookingId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${bookingId}/receipt`, {
+      responseType: 'blob'
+    });
+  }
 }

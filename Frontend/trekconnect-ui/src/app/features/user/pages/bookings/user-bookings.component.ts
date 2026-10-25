@@ -82,6 +82,27 @@ export class UserBookingsComponent implements OnInit {
     });
   }
 
+  downloadReceipt(booking: BookingResponse): void {
+    this.notificationService.showInfo(`Generating PDF receipt for booking ${booking.id.substring(0, 8).toUpperCase()}...`, 'Receipt Download');
+    this.bookingService.downloadReceipt(booking.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TrekConnect_Receipt_${booking.id}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.notificationService.showSuccess('Official PDF Receipt downloaded!', 'Download Complete');
+      },
+      error: (err) => {
+        console.error('Error downloading receipt', err);
+        this.notificationService.showError('Could not download receipt. Please verify booking is confirmed.', 'Download Failed');
+      }
+    });
+  }
+
   onLogout(): void {
     this.tokenService.clearTokens();
     this.notificationService.showInfo('Logged out successfully.', 'Signed Out');

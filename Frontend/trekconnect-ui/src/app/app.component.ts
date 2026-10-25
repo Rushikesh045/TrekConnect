@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastNotificationComponent } from './shared/components/toast-notification/toast-notification.component';
+import { WebSocketService } from './core/services/websocket.service';
 
 @Component({
   selector: 'app-root',
@@ -9,6 +10,12 @@ import { ToastNotificationComponent } from './shared/components/toast-notificati
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements OnInit {
   title = 'TrekConnect Platform';
+  private wsService = inject(WebSocketService);
+
+  ngOnInit(): void {
+    // Initialize real-time WebSocket connection to TrekConnect STOMP broker
+    this.wsService.init();
+  }
 }

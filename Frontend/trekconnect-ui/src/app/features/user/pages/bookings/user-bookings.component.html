@@ -10,7 +10,7 @@
       </div>
 
       <div class="nav-links">
-        <a routerLink="/user/home" class="nav-item"><i class="ri-compass-line"></i> Explore Treks</a>
+        <a routerLink="/user/home" class="nav-item"><i class="ri-compass-line"></i> Explore Treks</a>`r`n        <a routerLink="/user/wishlist" class="nav-item"><i class="ri-heart-line"></i> Wishlist</a>
         <a routerLink="/user/bookings" class="nav-item active"><i class="ri-ticket-2-line"></i> My Bookings</a>
         <a routerLink="/user/profile" class="nav-item"><i class="ri-user-3-line"></i> Profile</a>
         <button class="logout-btn" (click)="onLogout()"><i class="ri-logout-box-r-line"></i> Sign Out</button>
@@ -84,6 +84,10 @@
           <div class="booking-card-actions">
             <button class="view-pass-btn" (click)="openTicketPassModal(b)">
               <i class="ri-qr-code-line"></i> View Digital Pass Ticket
+            </button>
+
+            <button *ngIf="b.status === 'CONFIRMED'" class="receipt-btn" (click)="downloadReceipt(b)" title="Download Official PDF Receipt">
+              <i class="ri-file-download-line"></i> Receipt (PDF)
             </button>
 
             <button *ngIf="b.status !== 'CANCELLED'" class="cancel-btn" (click)="cancelBooking(b)">
@@ -163,6 +167,9 @@
       </div>
 
       <div class="pass-modal-footer">
+        <button *ngIf="selectedBookingForPass.status === 'CONFIRMED'" class="receipt-btn modal-receipt-btn" (click)="downloadReceipt(selectedBookingForPass)">
+          <i class="ri-file-download-line"></i> Download Official PDF Receipt
+        </button>
         <button class="close-pass-btn" (click)="closeTicketPassModal()">Close Pass</button>
       </div>
 
@@ -170,3 +177,4 @@
   </div>
 
 </div>
+

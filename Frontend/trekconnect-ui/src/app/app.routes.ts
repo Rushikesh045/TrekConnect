@@ -29,6 +29,12 @@ export const routes: Routes = [
     data: { roles: ['USER'] }
   },
   {
+    path: 'user/wishlist',
+    loadComponent: () => import('./features/user/pages/wishlist/user-wishlist.component').then(m => m.UserWishlistComponent),
+    canActivate: [authGuard],
+    data: { roles: ['USER', 'ORGANIZER', 'ADMIN'] }
+  },
+  {
     path: 'organizer/apply',
     loadComponent: () => import('./features/user/pages/organizer-apply/organizer-apply.component').then(m => m.OrganizerApplyComponent),
     canActivate: [authGuard],
