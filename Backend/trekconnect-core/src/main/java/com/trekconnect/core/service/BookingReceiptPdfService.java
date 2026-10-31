@@ -170,6 +170,137 @@ public class BookingReceiptPdfService {
         }
     }
 
+    /**
+     * Generates a branded, printable Digital Boarding Pass & Entry Permit PDF.
+     */
+    public byte[] generateDigitalPassPdf(Booking booking) {
+        logger.info("Generating Digital Ticket Pass PDF for Booking ID: {}", booking.getId());
+
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            Document document = new Document(PageSize.A4, 36, 36, 36, 36);
+            PdfWriter.getInstance(document, out);
+            document.open();
+
+            Font headerTitleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 22, PRIMARY_COLOR);
+            Font headerSubtitleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, ACCENT_COLOR);
+            Font sectionTitleFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, PRIMARY_COLOR);
+            Font labelFont = FontFactory.getFont(FontFactory.HELVETICA_BOLD, 9, Color.DARK_GRAY);
+            Font valFont = FontFactory.getFont(FontFactory.HELVETICA, 10, Color.BLACK);
+            Font codeFont = FontFactory.getFont(FontFactory.COURIER_BOLD, 13, PRIMARY_COLOR);
+            Font smallFont = FontFactory.getFont(FontFactory.HELVETICA, 8, Color.DARK_GRAY);
+
+            Paragraph title = new Paragraph("TREKCONNECT", headerTitleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            document.add(title);
+
+            Paragraph subtitle = new Paragraph("OFFICIAL EXPEDITION DIGITAL BOARDING PASS & ENTRY PERMIT", headerSubtitleFont);
+            subtitle.setAlignment(Element.ALIGN_CENTER);
+            subtitle.setSpacingAfter(15);
+            document.add(subtitle);
+
+            UserProfile user = booking.getUser();
+            Event event = booking.getEvent();
+            Trek trek = event != null ? event.getTrek() : null;
+
+            // Main Pass Border Box Table
+            PdfPTable passTable = new PdfPTable(2);
+            passTable.setWidthPercentage(100);
+            passTable.setWidths(new float[]{65, 35});
+
+            // Left Side: Booking & Expedition Info
+            PdfPCell leftCell = new PdfPCell();
+            leftCell.setBackgroundColor(BG_LIGHT);
+            leftCell.setBorderColor(ACCENT_COLOR);
+            leftCell.setBorderWidth(1.5f);
+            leftCell.setPadding(12);
+
+            leftCell.addElement(new Paragraph("EXPEDITION DETAILS", sectionTitleFont));
+            leftCell.addElement(new Paragraph("Trek Name: " + (trek != null ? trek.getName() : "Mountain Trail"), valFont));
+            leftCell.addElement(new Paragraph("Event Batch: " + (event != null ? event.getTitle() : "Trek Batch"), valFont));
+            leftCell.addElement(new Paragraph("Region: " + (trek != null ? trek.getRegion() : "Maharashtra") + " | Difficulty: " + (trek != null ? trek.getDifficulty() : "Moderate"), valFont));
+            leftCell.addElement(new Paragraph("Departure Date: " + (event != null && event.getEventDate() != null ? event.getEventDate().toString() : "Scheduled Weekend"), valFont));
+            leftCell.addElement(new Paragraph("Reporting Time: 05:30 AM (Base Camp / Pickup Point)", valFont));
+            leftCell.addElement(new Paragraph(" ", smallFont));
+
+            leftCell.addElement(new Paragraph("PASSENGER DETAILS", sectionTitleFont));
+            leftCell.addElement(new Paragraph("Trekker Name: " + (user != null ? user.getName() : "Trekker"), valFont));
+            leftCell.addElement(new Paragraph("Registered Email: " + (user != null ? user.getEmail() : "trekker@trekconnect.com"), valFont));
+            leftCell.addElement(new Paragraph("Confirmed Seats: " + (booking.getNumSeats() != null ? booking.getNumSeats() : 1) + " Slot(s)", valFont));
+            leftCell.addElement(new Paragraph("Payment Status: PAID & CONFIRMED", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 10, ACCENT_COLOR)));
+
+            passTable.addCell(leftCell);
+
+            // Right Side: Gate Check-in & Security Verification Box
+            PdfPCell rightCell = new PdfPCell();
+            rightCell.setBackgroundColor(new Color(241, 245, 249));
+            rightCell.setBorderColor(ACCENT_COLOR);
+            rightCell.setBorderWidth(1.5f);
+            rightCell.setPadding(12);
+            rightCell.setHorizontalAlignment(Element.ALIGN_CENTER);
+
+            Paragraph refTitle = new Paragraph("TICKET REF CODE", labelFont);
+            refTitle.setAlignment(Element.ALIGN_CENTER);
+            rightCell.addElement(refTitle);
+
+            String refCode = "TC-" + booking.getId().substring(0, Math.min(8, booking.getId().length())).toUpperCase();
+            Paragraph refPara = new Paragraph(refCode, codeFont);
+            refPara.setAlignment(Element.ALIGN_CENTER);
+            refPara.setSpacingAfter(10);
+            rightCell.addElement(refPara);
+
+            Paragraph gatePass = new Paragraph("ENTRY PERMIT", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 11, ACCENT_COLOR));
+            gatePass.setAlignment(Element.ALIGN_CENTER);
+            rightCell.addElement(gatePass);
+
+            Paragraph statusPara = new Paragraph("VERIFIED ACTIVE", FontFactory.getFont(FontFactory.HELVETICA_BOLD, 12, new Color(16, 185, 129)));
+            statusPara.setAlignment(Element.ALIGN_CENTER);
+            statusPara.setSpacingAfter(8);
+            rightCell.addElement(statusPara);
+
+            Paragraph scanNote = new Paragraph("Scan at departure gate for trail check-in with your certified expedition leader.", smallFont);
+            scanNote.setAlignment(Element.ALIGN_CENTER);
+            rightCell.addElement(scanNote);
+
+            passTable.addCell(rightCell);
+            passTable.setSpacingAfter(20);
+            document.add(passTable);
+
+            // Mandatory Trail Rules & Check-In Instructions
+            PdfPTable rulesTable = new PdfPTable(1);
+            rulesTable.setWidthPercentage(100);
+
+            PdfPCell rulesCell = new PdfPCell();
+            rulesCell.setBackgroundColor(BG_LIGHT);
+            rulesCell.setBorderColor(BORDER_COLOR);
+            rulesCell.setPadding(10);
+
+            Paragraph rulesHeader = new Paragraph("MANDATORY CHECK-IN & SAFETY PROTOCOLS", sectionTitleFont);
+            rulesCell.addElement(rulesHeader);
+
+            String instructions = "1. Identification: Every trekker must carry a valid Government Photo ID matching this pass.\n"
+                    + "2. Punctuality: Reporting time is strictly 05:30 AM. Departures cannot be delayed for late arrivals due to trail forest permit schedules.\n"
+                    + "3. Mandatory Gear: High-traction trekking shoes and a minimum of 2.5 Liters of drinking water are compulsory.\n"
+                    + "4. Cancellation Window: Cancellations are strictly permitted only up to 48 hours prior to the trek departure date.\n"
+                    + "5. Leave No Trace: Strict zero-litter policy. All plastic wraps and waste must be carried back to city disposal points.";
+
+            Paragraph instrPara = new Paragraph(instructions, smallFont);
+            rulesCell.addElement(instrPara);
+            rulesTable.addCell(rulesCell);
+            rulesTable.setSpacingAfter(20);
+            document.add(rulesTable);
+
+            Paragraph footer = new Paragraph("TrekConnect Expeditions • Official System Generated Digital Ticket Pass", FontFactory.getFont(FontFactory.HELVETICA_OBLIQUE, 8, Color.GRAY));
+            footer.setAlignment(Element.ALIGN_CENTER);
+            document.add(footer);
+
+            document.close();
+            return out.toByteArray();
+        } catch (Exception ex) {
+            logger.error("Failed to generate Digital Pass PDF for booking: {}", booking.getId(), ex);
+            throw new RuntimeException("Error generating digital pass PDF: " + ex.getMessage(), ex);
+        }
+    }
+
     private void addMetaCell(PdfPTable table, String label, String value, Font labelFont, Font valFont) {
         PdfPCell cell = new PdfPCell();
         cell.setBorder(Rectangle.NO_BORDER);

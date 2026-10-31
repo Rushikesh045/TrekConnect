@@ -898,21 +898,48 @@
     .price-main { font-size: 1.4rem; font-weight: 800; color: #34d399; small { font-size: 0.8rem; color: #94a3b8; } }
   }
 
-  .book-now-btn {
-    padding: 0.75rem 1.5rem;
-    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-    border: none;
-    border-radius: 0.75rem;
-    color: #ffffff;
-    font-size: 0.95rem;
-    font-weight: 800;
+  .modal-footer-actions {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+    gap: 0.75rem;
 
-    &:hover { background: #10b981; }
+    .ask-trekbot-btn {
+      padding: 0.75rem 1.25rem;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      border-radius: 0.75rem;
+      color: #34d399;
+      font-size: 0.9rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      transition: all 0.2s;
+
+      &:hover {
+        background: rgba(16, 185, 129, 0.25);
+        color: #ffffff;
+        transform: translateY(-1px);
+      }
+    }
+
+    .book-now-btn {
+      padding: 0.75rem 1.5rem;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border: none;
+      border-radius: 0.75rem;
+      color: #ffffff;
+      font-size: 0.95rem;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+
+      &:hover { background: #10b981; }
+    }
   }
 }
 

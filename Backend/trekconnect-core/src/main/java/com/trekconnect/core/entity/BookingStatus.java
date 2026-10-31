@@ -10,6 +10,7 @@ public enum BookingStatus {
     PAYMENT_FAILED,
     CANCELLED,
     EXPIRED,
+    FAILED,
     REFUNDED;
 
     /**
@@ -23,9 +24,10 @@ public enum BookingStatus {
             case PENDING_PAYMENT -> targetStatus == CONFIRMED 
                                  || targetStatus == PAYMENT_FAILED 
                                  || targetStatus == CANCELLED 
-                                 || targetStatus == EXPIRED;
+                                 || targetStatus == EXPIRED
+                                 || targetStatus == FAILED;
             case CONFIRMED -> targetStatus == CANCELLED || targetStatus == REFUNDED;
-            case PAYMENT_FAILED, CANCELLED, EXPIRED, REFUNDED -> false;
+            case PAYMENT_FAILED, CANCELLED, EXPIRED, FAILED, REFUNDED -> false;
         };
     }
 }

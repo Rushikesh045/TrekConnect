@@ -90,6 +90,11 @@ public class DataInitializer implements CommandLineRunner {
                     .licenseNumber("GSTIN-27ABCDE1234F1Z5")
                     .verificationDocsUrl("assets/images/kyc-cert.svg")
                     .verificationStatus("VERIFIED")
+                    .ocrDocumentType("PAN_CARD")
+                    .ocrExtractedId("ABCDE1234F")
+                    .ocrConfidenceScore(96.50)
+                    .ocrStatus("AUTO_VERIFIED")
+                    .ocrSummary("AI OCR validated PAN card ABCDE1234F matching Sahyadri Wanderers with 96.5% confidence.")
                     .build();
             organizerDetailsRepository.save(defaultOrg);
         }

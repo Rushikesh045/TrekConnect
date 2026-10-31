@@ -10,7 +10,7 @@
       </div>
 
       <div class="nav-links">
-        <a routerLink="/user/home" class="nav-item"><i class="ri-compass-line"></i> Explore Treks</a>`r`n        <a routerLink="/user/wishlist" class="nav-item"><i class="ri-heart-line"></i> Wishlist</a>
+        <a routerLink="/user/home" class="nav-item"><i class="ri-compass-line"></i> Explore Treks</a>       <a routerLink="/user/wishlist" class="nav-item"><i class="ri-heart-line"></i> Wishlist</a>
         <a routerLink="/user/bookings" class="nav-item active"><i class="ri-ticket-2-line"></i> My Bookings</a>
         <a routerLink="/user/profile" class="nav-item"><i class="ri-user-3-line"></i> Profile</a>
         <button class="logout-btn" (click)="onLogout()"><i class="ri-logout-box-r-line"></i> Sign Out</button>
@@ -44,8 +44,12 @@
             <p class="trek-name">{{ b.trekName }}</p>
           </div>
 
-          <span class="status-badge" [class.confirmed]="b.status === 'CONFIRMED'" [class.pending]="b.status === 'PENDING_PAYMENT'" [class.cancelled]="b.status === 'CANCELLED'">
-            {{ b.status }}
+          <span class="status-badge" 
+                [class.confirmed]="b.status === 'CONFIRMED'" 
+                [class.pending]="b.status === 'PENDING_PAYMENT'" 
+                [class.cancelled]="b.status === 'CANCELLED'"
+                [class.failed]="b.status === 'FAILED' || b.status === 'EXPIRED' || b.status === 'PAYMENT_FAILED'">
+            {{ getStatusLabel(b.status) }}
           </span>
         </div>
 
@@ -71,10 +75,10 @@
           </div>
         </div>
 
-        <!-- Digital Ticket Pass Footer -->
-        <div class="card-footer">
+        <!-- 1. CONFIRMED BOOKING FOOTER: Shows QR code preview, View Pass, PDF Receipt, and 48-hour conditional Cancel -->
+        <div class="card-footer" *ngIf="b.status === 'CONFIRMED'">
           <div class="ticket-pass-info" (click)="openTicketPassModal(b)">
-            <img [src]="getQrCodeUrl('TrekConnect Ticket Pass #' + b.id + ' | User: ' + (b.userName || userEmail) + ' | Event: ' + b.eventTitle + ' | Seats: ' + b.numSeats + ' | Status: ' + b.status)" class="qr-img clickable-qr" alt="QR Code Pass" width="44" height="44" />
+            <img [src]="getQrCodeUrl('TrekConnect Ticket Pass #' + b.id + ' | User: ' + (b.userName || userEmail) + ' | Event: ' + b.eventTitle + ' | Seats: ' + b.numSeats + ' | Status: CONFIRMED')" class="qr-img clickable-qr" alt="QR Code Pass" width="44" height="44" />
             <div>
               <span class="pass-id">Ticket Ref: TC-{{ b.id.substring(0, 8).toUpperCase() }}</span>
               <span class="pass-sub">Click to view Digital Entry Pass & Working QR</span>
@@ -86,13 +90,55 @@
               <i class="ri-qr-code-line"></i> View Digital Pass Ticket
             </button>
 
-            <button *ngIf="b.status === 'CONFIRMED'" class="receipt-btn" (click)="downloadReceipt(b)" title="Download Official PDF Receipt">
+            <button class="receipt-btn" (click)="downloadReceipt(b)" title="Download Official PDF Receipt">
               <i class="ri-file-download-line"></i> Receipt (PDF)
             </button>
 
-            <button *ngIf="b.status !== 'CANCELLED'" class="cancel-btn" (click)="cancelBooking(b)">
+            <button *ngIf="isCancellationAllowed(b)" class="cancel-btn" (click)="cancelBooking(b)" title="Cancel confirmed booking (allowed up to 48 hrs before departure)">
               <i class="ri-close-circle-line"></i> Cancel
             </button>
+            <span *ngIf="!isCancellationAllowed(b)" class="non-cancellable-pill" title="Cancellations are strictly permitted only up to 48 hours prior to departure date">
+              <i class="ri-lock-line"></i> Non-cancellable (&lt;48h to departure)
+            </span>
+          </div>
+        </div>
+
+        <!-- 2. PENDING PAYMENT FOOTER: 10-Minute Hold banner & Cancel Seat Hold button (NO Pass, NO Receipt) -->
+        <div class="card-footer pending-footer" *ngIf="b.status === 'PENDING_PAYMENT'">
+          <div class="pending-hold-box">
+            <i class="ri-time-line"></i>
+            <div>
+              <span class="hold-title">Temporary Seat Hold (10-Minute Window)</span>
+              <span class="hold-sub">Your seats are temporarily locked. Complete payment to confirm your booking.</span>
+            </div>
+          </div>
+
+          <div class="booking-card-actions">
+            <button class="cancel-btn" (click)="cancelBooking(b)" title="Release locked seats and cancel this reservation">
+              <i class="ri-close-circle-line"></i> Cancel Seat Hold
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. FAILED / EXPIRED FOOTER: Explanation notice (NO Pass, NO Receipt, NO Cancel) -->
+        <div class="card-footer failed-footer" *ngIf="b.status === 'FAILED' || b.status === 'EXPIRED' || b.status === 'PAYMENT_FAILED'">
+          <div class="failed-box">
+            <i class="ri-error-warning-line"></i>
+            <div>
+              <span class="failed-title">Booking Failed (Checkout Timed Out)</span>
+              <span class="failed-sub">Payment was not completed within the 10-minute seat lock. Reserved seats were automatically returned to the public pool.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. CANCELLED FOOTER: Cancellation summary notice (NO Pass, NO Receipt, NO Cancel) -->
+        <div class="card-footer cancelled-footer" *ngIf="b.status === 'CANCELLED'">
+          <div class="cancelled-box">
+            <i class="ri-close-circle-line"></i>
+            <div>
+              <span class="cancelled-title">Reservation Cancelled</span>
+              <span class="cancelled-sub">This booking has been cancelled and seats have been returned to the pool.</span>
+            </div>
           </div>
         </div>
 
@@ -167,8 +213,8 @@
       </div>
 
       <div class="pass-modal-footer">
-        <button *ngIf="selectedBookingForPass.status === 'CONFIRMED'" class="receipt-btn modal-receipt-btn" (click)="downloadReceipt(selectedBookingForPass)">
-          <i class="ri-file-download-line"></i> Download Official PDF Receipt
+        <button *ngIf="selectedBookingForPass.status === 'CONFIRMED'" class="download-pass-btn modal-pass-btn" (click)="downloadDigitalPass(selectedBookingForPass)">
+          <i class="ri-download-2-line"></i> Download Digital Pass (PDF)
         </button>
         <button class="close-pass-btn" (click)="closeTicketPassModal()">Close Pass</button>
       </div>

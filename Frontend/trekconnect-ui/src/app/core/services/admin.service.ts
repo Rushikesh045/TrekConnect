@@ -2,7 +2,24 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../environments/environment';
-import { OrganizerApplicationResponse } from './organizer.service';
+
+export interface OrganizerApplicationResponse {
+  id: string;
+  userId: string;
+  organizationName: string;
+  contactPhone?: string;
+  cityLocation?: string;
+  licenseNumber?: string;
+  verificationStatus: string;
+  verificationDocsUrl?: string;
+  rejectionReason?: string;
+  verifiedAt?: string;
+  ocrDocumentType?: string;
+  ocrExtractedId?: string;
+  ocrConfidenceScore?: number;
+  ocrStatus?: string;
+  ocrSummary?: string;
+}
 
 export interface AdminDashboardStatsResponse {
   totalUsers: number;

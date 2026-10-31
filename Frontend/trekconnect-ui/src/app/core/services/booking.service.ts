@@ -56,4 +56,10 @@ export class BookingService {
       responseType: 'blob'
     });
   }
+
+  downloadDigitalPass(bookingId: string): Observable<Blob> {
+    return this.http.get(`${this.apiUrl}/${bookingId}/pass`, {
+      responseType: 'blob'
+    });
+  }
 }

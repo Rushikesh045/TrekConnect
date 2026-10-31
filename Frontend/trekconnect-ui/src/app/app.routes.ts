@@ -35,12 +35,6 @@ export const routes: Routes = [
     data: { roles: ['USER', 'ORGANIZER', 'ADMIN'] }
   },
   {
-    path: 'organizer/apply',
-    loadComponent: () => import('./features/user/pages/organizer-apply/organizer-apply.component').then(m => m.OrganizerApplyComponent),
-    canActivate: [authGuard],
-    data: { roles: ['USER'] }
-  },
-  {
     path: 'organizer/dashboard',
     loadComponent: () => import('./features/organizer/pages/dashboard/organizer-dashboard.component').then(m => m.OrganizerDashboardComponent),
     canActivate: [authGuard],

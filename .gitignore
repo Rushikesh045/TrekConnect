@@ -13,6 +13,10 @@
 .metadata/
 **/.metadata/
 *.log
+.classpath
+.project
+.settings/
+**/.settings/
 
 # Local Documentation & Personal Files
 *.pdf

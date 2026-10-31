@@ -70,14 +70,63 @@ export class UserBookingsComponent implements OnInit {
   }
 
   cancelBooking(booking: BookingResponse): void {
+    const isPending = booking.status === 'PENDING_PAYMENT';
     this.bookingService.cancelBooking(booking.id).subscribe({
-      next: () => {
-        booking.status = 'CANCELLED';
-        this.notificationService.showInfo(`Booking cancelled. Reserved seats have been released.`, 'Booking Cancelled');
+      next: (res) => {
+        if (isPending || res?.status === 'DELETED') {
+          // Remove deleted seat-hold reservation completely from the user view
+          this.bookings = this.bookings.filter(b => b.id !== booking.id);
+          this.notificationService.showInfo('Seat hold cancelled. Your reserved slot has been released.', 'Hold Released');
+        } else {
+          booking.status = 'CANCELLED';
+          this.notificationService.showInfo('Booking cancelled. Reserved seats have been released.', 'Booking Cancelled');
+        }
       },
       error: (err) => {
-        const msg = err?.error?.message || 'Could not cancel this booking. Please try again or contact support.';
+        const msg = err?.error?.message || 'Could not cancel this booking. Please note confirmed bookings can only be cancelled up to 48 hours prior to departure.';
         this.notificationService.showError(msg, 'Cancellation Failed');
+      }
+    });
+  }
+
+  isCancellationAllowed(booking: BookingResponse): boolean {
+    if (booking.status === 'PENDING_PAYMENT') return true;
+    if (booking.status !== 'CONFIRMED') return false;
+    if (!booking.eventDate) return true;
+
+    const departure = new Date(booking.eventDate);
+    const now = new Date();
+    const diffHours = (departure.getTime() - now.getTime()) / (1000 * 60 * 60);
+    return diffHours >= 48;
+  }
+
+  getStatusLabel(status: string): string {
+    if (status === 'EXPIRED' || status === 'FAILED' || status === 'PAYMENT_FAILED') {
+      return 'FAILED';
+    }
+    if (status === 'PENDING_PAYMENT') {
+      return 'PENDING PAYMENT';
+    }
+    return status;
+  }
+
+  downloadDigitalPass(booking: BookingResponse): void {
+    this.notificationService.showInfo(`Generating Official Digital Pass for ${booking.eventTitle}...`, 'Pass Download');
+    this.bookingService.downloadDigitalPass(booking.id).subscribe({
+      next: (blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `TrekConnect_Pass_${booking.id.substring(0, Math.min(8, booking.id.length)).toUpperCase()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        this.notificationService.showSuccess('Official Digital Boarding Pass downloaded!', 'Download Complete');
+      },
+      error: (err) => {
+        console.error('Error downloading pass', err);
+        this.notificationService.showError('Could not download digital pass. Please ensure booking is confirmed.', 'Download Failed');
       }
     });
   }

@@ -22,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.persistence.OptimisticLockException;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -143,6 +144,8 @@ public class BookingService {
 
     /**
      * Cancels a booking and releases reserved seats back to the event capacity.
+     * Enforces the 48-hour rule for CONFIRMED bookings.
+     * For PENDING_PAYMENT bookings, releases the temporary hold and completely deletes the entry.
      */
     @Transactional
     public BookingResponse cancelBooking(String userId, String bookingId) {
@@ -151,15 +154,56 @@ public class BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + bookingId));
 
-        if (booking.getBookingStatus().canTransitionTo(BookingStatus.CANCELLED)) {
+        BookingStatus currentStatus = booking.getBookingStatus();
+
+        // 1. Cancellation during 10-minute PENDING_PAYMENT lock:
+        // User changed their mind before payment. Release locked seats, delete lock, and delete booking record.
+        if (currentStatus == BookingStatus.PENDING_PAYMENT) {
+            Event event = booking.getEvent();
+            if (event != null && event.getCapacityBooked() != null) {
+                int seatsToRelease = booking.getNumSeats() != null ? booking.getNumSeats() : 1;
+                int newBooked = Math.max(0, event.getCapacityBooked() - seatsToRelease);
+                event.setCapacityBooked(newBooked);
+                eventRepository.save(event);
+                logger.info("Released {} seats for event: {}. New booked total: {}", seatsToRelease, event.getId(), newBooked);
+            }
+
+            if (event != null && booking.getUser() != null) {
+                try {
+                    seatLockRepository.deleteByEventIdAndUserId(event.getId(), booking.getUser().getUserId());
+                } catch (Exception e) {
+                    logger.warn("Could not delete seat lock for booking {}: {}", bookingId, e.getMessage());
+                }
+            }
+
+            bookingRepository.delete(booking);
+            logger.info("Deleted pending booking entry {} after user pre-payment cancellation", bookingId);
+
+            return BookingResponse.builder()
+                    .id(bookingId)
+                    .status("DELETED")
+                    .numSeats(0)
+                    .build();
+        }
+
+        // 2. Cancellation for CONFIRMED bookings:
+        // Allowed ONLY if current time is more than 48 hours prior to departure date!
+        if (currentStatus == BookingStatus.CONFIRMED) {
+            Event event = booking.getEvent();
+            if (event != null && event.getEventDate() != null) {
+                LocalDate departureDate = event.getEventDate();
+                if (LocalDate.now().plusDays(2).isAfter(departureDate)) {
+                    throw new IllegalStateException("Cancellations are strictly permitted only up to 48 hours prior to trek departure date (" + departureDate + ").");
+                }
+            }
+
             booking.setStatus(BookingStatus.CANCELLED);
             
-            Event event = booking.getEvent();
             if (event != null && event.getCapacityBooked() != null) {
                 int newBooked = Math.max(0, event.getCapacityBooked() - (booking.getNumSeats() != null ? booking.getNumSeats() : 1));
                 event.setCapacityBooked(newBooked);
                 eventRepository.save(event);
-                logger.info("Released {} seats for event: {}. New booked total: {}", booking.getNumSeats(), event.getId(), newBooked);
+                logger.info("Released {} seats for cancelled booking {}. New booked total: {}", booking.getNumSeats(), event.getId(), newBooked);
             }
 
             bookingRepository.save(booking);
@@ -171,7 +215,7 @@ public class BookingService {
                     notificationService.createNotification(
                             booking.getUser().getUserId(),
                             "Booking Cancelled",
-                            "Your booking (" + booking.getId() + ") for " + trekName + " has been cancelled.",
+                            "Your confirmed reservation for " + trekName + " has been cancelled.",
                             "BOOKING_CANCELLED"
                     );
                 }
@@ -184,15 +228,22 @@ public class BookingService {
                     );
                 }
             }
+
+            return mapToBookingResponse(booking);
         }
 
-        return mapToBookingResponse(booking);
+        throw new IllegalStateException("Booking cannot be cancelled from current status: " + currentStatus);
     }
 
     private BookingResponse mapToBookingResponse(Booking booking) {
         Event event = booking.getEvent();
         String trekName = (event != null && event.getTrek() != null) ? event.getTrek().getName() : "Sahyadri Trek";
         String region = (event != null && event.getTrek() != null) ? event.getTrek().getRegion() : "Maharashtra";
+
+        String status = booking.getStatus();
+        if ("EXPIRED".equalsIgnoreCase(status) || "PAYMENT_FAILED".equalsIgnoreCase(status)) {
+            status = "FAILED";
+        }
 
         return BookingResponse.builder()
                 .id(booking.getId())
@@ -205,7 +256,7 @@ public class BookingService {
                 .userName(booking.getUser() != null ? booking.getUser().getName() : "Trekker")
                 .numSeats(booking.getNumSeats())
                 .totalAmount(booking.getTotalAmount())
-                .status(booking.getStatus())
+                .status(status)
                 .idempotencyKey(booking.getIdempotencyKey())
                 .expiresAt(booking.getExpiresAt())
                 .createdAt(booking.getCreatedAt())

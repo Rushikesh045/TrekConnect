@@ -209,17 +209,17 @@ public class BookingSagaOrchestrator {
         logger.info("Found {} expired pending booking(s)", expiredBookings.size());
 
         for (Booking booking : expiredBookings) {
-            if (booking.getBookingStatus().canTransitionTo(BookingStatus.EXPIRED)) {
-                booking.setStatus(BookingStatus.EXPIRED);
+            if (booking.getBookingStatus().canTransitionTo(BookingStatus.FAILED)) {
+                booking.setStatus(BookingStatus.FAILED);
 
                 releaseSeatsCompensatingAction(booking);
 
                 bookingRepository.save(booking);
 
-                createOutboxEvent("Booking", booking.getId(), "BOOKING_EXPIRED",
-                        String.format("{\"bookingId\":\"%s\",\"status\":\"EXPIRED\"}", booking.getId()));
+                createOutboxEvent("Booking", booking.getId(), "BOOKING_FAILED",
+                        String.format("{\"bookingId\":\"%s\",\"status\":\"FAILED\"}", booking.getId()));
 
-                logger.info("Released {} seats for expired booking: {}", booking.getNumSeats(), booking.getId());
+                logger.info("Released {} seats for failed/expired booking: {}", booking.getNumSeats(), booking.getId());
             }
         }
     }

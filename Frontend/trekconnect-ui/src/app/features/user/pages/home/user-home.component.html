@@ -320,9 +320,14 @@
           <span class="price-main">₹{{ selectedTrek.pricePerSlot.toLocaleString('en-IN') }} <small>/ seat</small></span>
         </div>
 
-        <button class="book-now-btn" (click)="onBookTrek(selectedTrek)">
-          <i class="ri-flashlight-line"></i> Proceed to Seat Selection
-        </button>
+        <div class="modal-footer-actions">
+          <button class="ask-trekbot-btn" type="button" (click)="askTrekBotForCurrentTrek()" title="Ask TrekBot AI about gear, weather, itinerary">
+            <i class="ri-robot-2-line"></i> Ask TrekBot
+          </button>
+          <button class="book-now-btn" (click)="onBookTrek(selectedTrek)">
+            <i class="ri-flashlight-line"></i> Proceed to Seat Selection
+          </button>
+        </div>
       </div>
     </div>
   </div>

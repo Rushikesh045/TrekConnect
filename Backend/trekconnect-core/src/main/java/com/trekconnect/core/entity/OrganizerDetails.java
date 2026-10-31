@@ -50,6 +50,21 @@ public class OrganizerDetails {
     @Column(name = "rejection_reason", length = 500)
     private String rejectionReason;
 
+    @Column(name = "ocr_document_type", length = 50)
+    private String ocrDocumentType;
+
+    @Column(name = "ocr_extracted_id", length = 100)
+    private String ocrExtractedId;
+
+    @Column(name = "ocr_confidence_score")
+    private Double ocrConfidenceScore;
+
+    @Column(name = "ocr_status", length = 30)
+    private String ocrStatus;
+
+    @Column(name = "ocr_summary", columnDefinition = "TEXT")
+    private String ocrSummary;
+
     public OrganizerDetails() {
     }
 
@@ -159,6 +174,46 @@ public class OrganizerDetails {
         this.rejectionReason = rejectionReason;
     }
 
+    public String getOcrDocumentType() {
+        return ocrDocumentType;
+    }
+
+    public void setOcrDocumentType(String ocrDocumentType) {
+        this.ocrDocumentType = ocrDocumentType;
+    }
+
+    public String getOcrExtractedId() {
+        return ocrExtractedId;
+    }
+
+    public void setOcrExtractedId(String ocrExtractedId) {
+        this.ocrExtractedId = ocrExtractedId;
+    }
+
+    public Double getOcrConfidenceScore() {
+        return ocrConfidenceScore;
+    }
+
+    public void setOcrConfidenceScore(Double ocrConfidenceScore) {
+        this.ocrConfidenceScore = ocrConfidenceScore;
+    }
+
+    public String getOcrStatus() {
+        return ocrStatus;
+    }
+
+    public void setOcrStatus(String ocrStatus) {
+        this.ocrStatus = ocrStatus;
+    }
+
+    public String getOcrSummary() {
+        return ocrSummary;
+    }
+
+    public void setOcrSummary(String ocrSummary) {
+        this.ocrSummary = ocrSummary;
+    }
+
     @PrePersist
     public void prePersist() {
         if (this.id == null) {
@@ -181,6 +236,36 @@ public class OrganizerDetails {
         private String verifiedByAdminId;
         private LocalDateTime verifiedAt;
         private String rejectionReason;
+        private String ocrDocumentType;
+        private String ocrExtractedId;
+        private Double ocrConfidenceScore;
+        private String ocrStatus;
+        private String ocrSummary;
+
+        public OrganizerDetailsBuilder ocrDocumentType(String ocrDocumentType) {
+            this.ocrDocumentType = ocrDocumentType;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder ocrExtractedId(String ocrExtractedId) {
+            this.ocrExtractedId = ocrExtractedId;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder ocrConfidenceScore(Double ocrConfidenceScore) {
+            this.ocrConfidenceScore = ocrConfidenceScore;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder ocrStatus(String ocrStatus) {
+            this.ocrStatus = ocrStatus;
+            return this;
+        }
+
+        public OrganizerDetailsBuilder ocrSummary(String ocrSummary) {
+            this.ocrSummary = ocrSummary;
+            return this;
+        }
 
         public OrganizerDetailsBuilder id(String id) {
             this.id = id;
@@ -238,7 +323,13 @@ public class OrganizerDetails {
         }
 
         public OrganizerDetails build() {
-            return new OrganizerDetails(id, user, organizationName, contactPhone, cityLocation, licenseNumber, verificationStatus, verificationDocsUrl, verifiedByAdminId, verifiedAt, rejectionReason);
+            OrganizerDetails details = new OrganizerDetails(id, user, organizationName, contactPhone, cityLocation, licenseNumber, verificationStatus, verificationDocsUrl, verifiedByAdminId, verifiedAt, rejectionReason);
+            details.setOcrDocumentType(this.ocrDocumentType);
+            details.setOcrExtractedId(this.ocrExtractedId);
+            details.setOcrConfidenceScore(this.ocrConfidenceScore);
+            details.setOcrStatus(this.ocrStatus);
+            details.setOcrSummary(this.ocrSummary);
+            return details;
         }
     }
 }

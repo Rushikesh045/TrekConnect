@@ -31,6 +31,11 @@ CREATE TABLE IF NOT EXISTS organizer_details (
     verified_by_admin_id VARCHAR(36) NULL, -- ID of admin who reviewed the verification request.
     verified_at TIMESTAMP NULL, -- Timestamp when organizer was verified or rejected.
     rejection_reason VARCHAR(500) NULL, -- Reason for rejection if verification failed.
+    ocr_document_type VARCHAR(50) NULL, -- AI detected KYC document type (e.g. 'PAN_CARD', 'AADHAAR_CARD')
+    ocr_extracted_id VARCHAR(100) NULL, -- Extracted identity registration / license number
+    ocr_confidence_score DECIMAL(5, 2) NULL, -- Composite AI OCR confidence score (0.0 to 100.0)
+    ocr_status VARCHAR(30) NULL, -- 'AUTO_VERIFIED', 'FLAGGED_FOR_REVIEW', 'NAME_MISMATCH'
+    ocr_summary TEXT NULL, -- AI verification executive summary
     CONSTRAINT fk_organizer_user_profile FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
 );
 

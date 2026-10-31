@@ -106,6 +106,40 @@ public class BookingController {
                 .body(pdfBytes);
     }
 
+    @GetMapping("/{id}/pass")
+    public ResponseEntity<byte[]> getDigitalPassPdf(
+            Authentication authentication,
+            @PathVariable("id") String id) {
+        String userId = (String) authentication.getPrincipal();
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Booking not found with ID: " + id));
+
+        boolean isOwner = booking.getUser() != null && userId.equals(booking.getUser().getUserId());
+        boolean hasAdminRole = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN") || a.getAuthority().equals("ROLE_ORGANIZER"));
+
+        if (!isOwner && !hasAdminRole) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+        }
+
+        // Digital pass is only available for confirmed, paid bookings
+        if (!"CONFIRMED".equalsIgnoreCase(booking.getStatus())) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
+
+        byte[] pdfBytes = receiptPdfService.generateDigitalPassPdf(booking);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDisposition(ContentDisposition.attachment()
+                .filename("TrekConnect_Pass_" + id.substring(0, Math.min(8, id.length())).toUpperCase() + ".pdf")
+                .build());
+
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(pdfBytes);
+    }
+
     @GetMapping("/saga/outbox")
     public ResponseEntity<List<OutboxEvent>> getOutboxEvents() {
         return ResponseEntity.ok(sagaOrchestrator.getRecentOutboxEvents());

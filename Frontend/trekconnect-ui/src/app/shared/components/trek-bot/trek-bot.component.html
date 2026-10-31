@@ -1,0 +1,110 @@
+<!-- FLOATING LAUNCHER BUTTON -->
+<div class="trekbot-launcher" *ngIf="!isOpen" (click)="toggleChat()" title="Ask TrekBot AI">
+  <div class="launcher-pulse"></div>
+  <div class="launcher-content">
+    <i class="ri-robot-2-line bot-icon"></i>
+    <span class="launcher-label">Ask TrekBot</span>
+  </div>
+</div>
+
+<!-- TREKBOT CHAT DRAWER / WINDOW -->
+<div class="trekbot-window" *ngIf="isOpen" [class.open]="isOpen">
+  <!-- 1. Header -->
+  <div class="trekbot-header">
+    <div class="header-left">
+      <div class="bot-avatar">
+        <i class="ri-compass-3-line"></i>
+      </div>
+      <div class="header-titles">
+        <div class="bot-name-row">
+          <span class="bot-name">TrekBot AI</span>
+          <span class="ai-badge">RAG ASSISTANT</span>
+        </div>
+        <p class="bot-status" *ngIf="activeContext">
+          <i class="ri-map-pin-line"></i> {{ activeContext.title }}
+        </p>
+        <p class="bot-status" *ngIf="!activeContext">
+          <span class="online-dot"></span> Ready to help with Sahyadri & Himalayan treks
+        </p>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="header-btn" (click)="clearChat()" title="Clear Chat History">
+        <i class="ri-refresh-line"></i>
+      </button>
+      <button class="header-btn close-btn" (click)="closeChat()" title="Close TrekBot">
+        <i class="ri-close-line"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- 2. Active Context Strip (if browsing specific trek) -->
+  <div class="context-strip" *ngIf="activeContext">
+    <i class="ri-information-line"></i>
+    <span>Context: <strong>{{ activeContext.title }}</strong> ({{ activeContext.difficulty || 'Moderate' }} • {{ activeContext.altitudeFt || 3500 }} ft)</span>
+  </div>
+
+  <!-- 3. Message Stream -->
+  <div class="chat-messages-container" #chatScrollContainer>
+    <div 
+      *ngFor="let msg of messages" 
+      class="message-row"
+      [class.user-row]="msg.role === 'user'"
+      [class.bot-row]="msg.role === 'assistant'"
+    >
+      <div class="message-bubble" [class.user-bubble]="msg.role === 'user'" [class.bot-bubble]="msg.role === 'assistant'">
+        <div class="message-content" [innerHTML]="formatMessageContent(msg)"></div>
+        
+        <div class="message-meta">
+          <span class="time-label">{{ msg.timestamp | date:'shortTime' }}</span>
+          <span class="grounded-badge" *ngIf="msg.groundedIn && msg.role === 'assistant'" 
+                [class.ollama-badge]="msg.groundedIn.includes('Ollama') && !msg.groundedIn.includes('Offline')"
+                [class.offline-badge]="msg.groundedIn.includes('Offline')">
+            <i [class]="msg.groundedIn.includes('Offline') ? 'ri-error-warning-fill' : (msg.groundedIn.includes('Ollama') ? 'ri-cpu-line' : 'ri-shield-check-fill')"></i>
+            <span>{{ msg.groundedIn.includes('Offline') ? 'Service: ' + msg.groundedIn : (msg.groundedIn.includes('Ollama') ? 'AI Engine: ' + msg.groundedIn : 'Grounded: ' + msg.groundedIn) }}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Loader -->
+    <div class="message-row bot-row" *ngIf="isLoading">
+      <div class="message-bubble bot-bubble typing-bubble">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Quick Suggestion Pills -->
+  <div class="quick-prompts-bar" *ngIf="suggestedFollowUps.length > 0 && !isLoading">
+    <button 
+      *ngFor="let pill of suggestedFollowUps" 
+      class="prompt-pill" 
+      (click)="selectFollowUp(pill)"
+    >
+      {{ pill }}
+    </button>
+  </div>
+
+  <!-- 5. Input Area -->
+  <div class="chat-input-bar">
+    <input 
+      type="text" 
+      [(ngModel)]="userPrompt" 
+      (keyup.enter)="sendMessage()" 
+      placeholder="Ask about shoes, rain gear, meals, schedule..." 
+      [disabled]="isLoading"
+    />
+    <button 
+      class="send-btn" 
+      (click)="sendMessage()" 
+      [disabled]="!userPrompt.trim() || isLoading"
+      title="Send Message"
+    >
+      <i class="ri-send-plane-2-fill"></i>
+    </button>
+  </div>
+</div>

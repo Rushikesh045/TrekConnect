@@ -2,8 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
-import { AdminService, AdminDashboardStatsResponse, DisputeResponse, RegisteredUserResponse } from '../../../../core/services/admin.service';
-import { OrganizerApplicationResponse } from '../../../../core/services/organizer.service';
+import { AdminService, AdminDashboardStatsResponse, DisputeResponse, RegisteredUserResponse, OrganizerApplicationResponse } from '../../../../core/services/admin.service';
 import { TokenService } from '../../../../core/services/token.service';
 import { NotificationService } from '../../../../core/services/notification.service';
 

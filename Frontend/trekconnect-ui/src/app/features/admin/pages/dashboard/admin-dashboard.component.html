@@ -105,6 +105,7 @@
               <th>Contact Phone</th>
               <th>Operating Base</th>
               <th>Reg / License No.</th>
+              <th>AI OCR Assessment</th>
               <th>Verification Docs</th>
               <th>Status</th>
               <th>Actions</th>
@@ -126,6 +127,18 @@
               </td>
               <td>
                 <span class="meta-code"><code>{{ app.licenseNumber || 'N/A' }}</code></span>
+              </td>
+              <td>
+                <div class="ai-ocr-cell" *ngIf="app.ocrStatus || app.ocrDocumentType">
+                  <span class="ocr-status-tag" [class.auto-verified]="app.ocrStatus === 'AUTO_VERIFIED'" [class.flagged]="app.ocrStatus && app.ocrStatus !== 'AUTO_VERIFIED'">
+                    <i [class]="app.ocrStatus === 'AUTO_VERIFIED' ? 'ri-shield-check-fill' : 'ri-error-warning-fill'"></i>
+                    {{ app.ocrStatus === 'AUTO_VERIFIED' ? 'AI Authenticated' : (app.ocrStatus || 'AI Scanned') }}
+                  </span>
+                  <small class="ocr-meta-sub" *ngIf="app.ocrConfidenceScore">
+                    {{ app.ocrDocumentType ? app.ocrDocumentType.replace('_', ' ') : 'KYC ID' }} • {{ app.ocrConfidenceScore.toFixed(0) }}% match
+                  </small>
+                </div>
+                <span *ngIf="!app.ocrStatus && !app.ocrDocumentType" class="no-doc">Manual Verification</span>
               </td>
               <td>
                 <a *ngIf="app.verificationDocsUrl" [href]="app.verificationDocsUrl" target="_blank" rel="noopener noreferrer" class="doc-link">

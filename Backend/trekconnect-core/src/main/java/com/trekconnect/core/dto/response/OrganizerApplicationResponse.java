@@ -17,6 +17,11 @@ public class OrganizerApplicationResponse {
     private String verificationDocsUrl;
     private String rejectionReason;
     private LocalDateTime verifiedAt;
+    private String ocrDocumentType;
+    private String ocrExtractedId;
+    private Double ocrConfidenceScore;
+    private String ocrStatus;
+    private String ocrSummary;
 
     public OrganizerApplicationResponse() {
     }
@@ -118,6 +123,46 @@ public class OrganizerApplicationResponse {
         this.verifiedAt = verifiedAt;
     }
 
+    public String getOcrDocumentType() {
+        return ocrDocumentType;
+    }
+
+    public void setOcrDocumentType(String ocrDocumentType) {
+        this.ocrDocumentType = ocrDocumentType;
+    }
+
+    public String getOcrExtractedId() {
+        return ocrExtractedId;
+    }
+
+    public void setOcrExtractedId(String ocrExtractedId) {
+        this.ocrExtractedId = ocrExtractedId;
+    }
+
+    public Double getOcrConfidenceScore() {
+        return ocrConfidenceScore;
+    }
+
+    public void setOcrConfidenceScore(Double ocrConfidenceScore) {
+        this.ocrConfidenceScore = ocrConfidenceScore;
+    }
+
+    public String getOcrStatus() {
+        return ocrStatus;
+    }
+
+    public void setOcrStatus(String ocrStatus) {
+        this.ocrStatus = ocrStatus;
+    }
+
+    public String getOcrSummary() {
+        return ocrSummary;
+    }
+
+    public void setOcrSummary(String ocrSummary) {
+        this.ocrSummary = ocrSummary;
+    }
+
     public static class OrganizerApplicationResponseBuilder {
         private String id;
         private String userId;
@@ -129,6 +174,36 @@ public class OrganizerApplicationResponse {
         private String verificationDocsUrl;
         private String rejectionReason;
         private LocalDateTime verifiedAt;
+        private String ocrDocumentType;
+        private String ocrExtractedId;
+        private Double ocrConfidenceScore;
+        private String ocrStatus;
+        private String ocrSummary;
+
+        public OrganizerApplicationResponseBuilder ocrDocumentType(String ocrDocumentType) {
+            this.ocrDocumentType = ocrDocumentType;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder ocrExtractedId(String ocrExtractedId) {
+            this.ocrExtractedId = ocrExtractedId;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder ocrConfidenceScore(Double ocrConfidenceScore) {
+            this.ocrConfidenceScore = ocrConfidenceScore;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder ocrStatus(String ocrStatus) {
+            this.ocrStatus = ocrStatus;
+            return this;
+        }
+
+        public OrganizerApplicationResponseBuilder ocrSummary(String ocrSummary) {
+            this.ocrSummary = ocrSummary;
+            return this;
+        }
 
         public OrganizerApplicationResponseBuilder id(String id) {
             this.id = id;
@@ -181,7 +256,13 @@ public class OrganizerApplicationResponse {
         }
 
         public OrganizerApplicationResponse build() {
-            return new OrganizerApplicationResponse(id, userId, organizationName, contactPhone, cityLocation, licenseNumber, verificationStatus, verificationDocsUrl, rejectionReason, verifiedAt);
+            OrganizerApplicationResponse res = new OrganizerApplicationResponse(id, userId, organizationName, contactPhone, cityLocation, licenseNumber, verificationStatus, verificationDocsUrl, rejectionReason, verifiedAt);
+            res.setOcrDocumentType(this.ocrDocumentType);
+            res.setOcrExtractedId(this.ocrExtractedId);
+            res.setOcrConfidenceScore(this.ocrConfidenceScore);
+            res.setOcrStatus(this.ocrStatus);
+            res.setOcrSummary(this.ocrSummary);
+            return res;
         }
     }
 }

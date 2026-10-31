@@ -213,6 +213,39 @@
   .org-name-text { font-weight: 800; color: #fff; }
   .user-id-code code { background: rgba(255, 255, 255, 0.08); padding: 0.2rem 0.4rem; border-radius: 4px; font-size: 0.8rem; }
   .doc-link { color: #38bdf8; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; &:hover { text-decoration: underline; } }
+
+  .ai-ocr-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+
+    .ocr-status-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      width: fit-content;
+
+      &.auto-verified {
+        background: rgba(16, 185, 129, 0.15);
+        color: #34d399;
+        border: 1px solid rgba(16, 185, 129, 0.35);
+      }
+      &.flagged {
+        background: rgba(245, 158, 11, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(245, 158, 11, 0.35);
+      }
+    }
+
+    .ocr-meta-sub {
+      font-size: 0.68rem;
+      color: #94a3b8;
+    }
+  }
   .no-doc { color: var(--text-muted); font-size: 0.8rem; }
 
   .status-badge {

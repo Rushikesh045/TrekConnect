@@ -10,6 +10,7 @@ import { BookingService, BookingResponse } from '../../../../core/services/booki
 import { PaymentService, PaymentOrderResponse } from '../../../../core/services/payment.service';
 import { WishlistService } from '../../../../core/services/wishlist.service';
 import { ReviewService, TrekReview } from '../../../../core/services/review.service';
+import { AiService } from '../../../../core/services/ai.service';
 
 interface MockTrek {
   id: string;
@@ -50,6 +51,7 @@ export class UserHomeComponent implements OnInit {
   private paymentService = inject(PaymentService);
   private wishlistService = inject(WishlistService);
   private reviewService = inject(ReviewService);
+  private aiService = inject(AiService);
   private http = inject(HttpClient);
   private router = inject(Router);
 
@@ -199,6 +201,23 @@ export class UserHomeComponent implements OnInit {
     this.selectedTrek = trek;
     this.isDetailModalOpen = true;
     this.loadReviews(trek.id);
+  }
+
+  askTrekBotForCurrentTrek(): void {
+    if (!this.selectedTrek) return;
+    this.aiService.openTrekBotWithContext({
+      trekId: this.selectedTrek.id,
+      title: this.selectedTrek.title,
+      location: this.selectedTrek.location,
+      difficulty: this.selectedTrek.difficulty,
+      altitudeFt: this.selectedTrek.altitudeFt,
+      pricePerSlot: this.selectedTrek.pricePerSlot,
+      durationDays: this.selectedTrek.durationDays,
+      description: this.selectedTrek.description,
+      inclusions: this.selectedTrek.inclusions,
+      upcomingDate: this.selectedTrek.upcomingDate,
+      organizerName: this.selectedTrek.organizerName
+    });
   }
 
   loadReviews(trekId: string): void {
